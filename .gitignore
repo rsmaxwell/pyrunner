@@ -1,0 +1,8 @@
+*.ico
+*.lpi
+*.lpr
+*.lps
+*.res
+*.exe
+lib/
+backup/
