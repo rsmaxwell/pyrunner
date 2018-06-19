@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CONFIG>
-  <Compiler Value="C:\lazarus\fpc\3.0.4\bin\i386-win32\fpc.exe" Date="1286835357"/>
-  <Params Value=" -MObjFPC -Scghi -O1 -g -gl -l -vewnhibq -FiC:\Users\Richard\git\github.com\rsmaxwell\pyrunner\lib\i386-win32 -FuC:\lazarus\components\lazutils\lib\i386-win32 -FuC:\lazarus\packager\units\i386-win32 -FuC:\Users\Richard\git\github.com\rsmaxwell\pyrunner\ -FUC:\Users\Richard\git\github.com\rsmaxwell\pyrunner\lib\i386-win32\ test.lpr"/>
-</CONFIG>
