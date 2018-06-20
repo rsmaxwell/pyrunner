@@ -16,6 +16,7 @@ type
         line: string;
         observers : TInterfaceList;
         operation: TMyRunnerOperation;
+
         procedure ReadInternal;
         procedure Update();
         procedure notifyObservers();
@@ -38,11 +39,13 @@ begin
     linebuffer := TStringList.Create;
     observers := obs;
     operation := op;
+
 end;
 
 procedure MyReader.Read(var buffer: TStrings);
 begin
     ReadInternal;
+
     buffer := temp;
 end;
 
@@ -67,6 +70,7 @@ begin
         Reset(f);
         while not EOF(f) do begin
           ReadLn(f, line);
+
           Update;
         end;
     end;

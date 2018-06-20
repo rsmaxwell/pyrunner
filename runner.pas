@@ -5,7 +5,7 @@ unit Runner;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Process, StreamReader, RunnerInterfaces;
+  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, StreamReader, RunnerInterfaces;
 
 
 
@@ -24,6 +24,11 @@ type
         procedure Close();
         procedure attachObserver( observer : IMyRunnerObserver );
         procedure detachObserver( observer : IMyRunnerObserver );
+
+        procedure CreateArray(field : AnsiString);
+        procedure ExtendArray( field : AnsiString; list : array of real );
+        procedure RunPythonFunction( pythonFunction : AnsiString);
+        procedure GetField(field : AnsiString);
     end;
 
 
@@ -42,7 +47,7 @@ begin
     observers := TInterfaceList.Create;
 
     proc := TProcess.Create(nil);
-    proc.Executable:= FindDefaultExecutablePath('python.exe');;
+    proc.Executable:= FindDefaultExecutablePath('python.exe');
     proc.Parameters.Add('server.py');
     proc.Options := proc.Options + [poUsePipes, poNoConsole];
     proc.Execute;
@@ -106,6 +111,111 @@ end;
 procedure MyRunner.detachObserver( observer : IMyRunnerObserver );
 begin
     observers.Remove(observer);
+end;
+
+// *****************************************************************************
+//* Helpers
+// *****************************************************************************
+procedure MyRunner.CreateArray( field : AnsiString );
+var
+    python : AnsiString;
+    command : AnsiString;
+    jObject : TJSONObject;
+    jArray : TJSONArray;
+
+begin
+    // data["array"] = [] )
+
+    python := 'data["' + field + '"] = []';
+
+    jObject := TJSONObject.Create();
+    jObject.Add('command', 'run');
+
+    jArray := TJSONArray.Create();
+    jArray.Add( python );
+    jObject.Add('arguments', jArray);
+
+    command := jObject.AsJSON;
+    WriteLn(command);
+end;
+
+procedure MyRunner.ExtendArray( field : AnsiString; list : array of real );
+var
+    python : AnsiString;
+    command : AnsiString;
+    sep : string;
+    jObject : TJSONObject;
+    jArray : TJSONArray;
+    i : integer;
+    value : real;
+
+begin
+
+    // data["array"].extend( (11,12,13) )
+
+    python := 'data["' + field + '"].extend( (';
+    sep := '';
+    for i := 0 to Length(list) - 1 do
+    begin
+        value := list[i];
+        python := python + sep + FloatToStr(value);
+        sep := ', ';
+    end;
+    python := python + ') )';
+
+    jObject := TJSONObject.Create();
+    jObject.Add('command', 'run');
+
+    jArray := TJSONArray.Create();
+    jArray.Add( python );
+    jObject.Add('arguments', jArray);
+
+    command := jObject.AsJSON;
+    WriteLn(command);
+end;
+
+
+procedure MyRunner.RunPythonFunction( pythonFunction : AnsiString);
+var
+    python : AnsiString;
+    command : AnsiString;
+    jObject : TJSONObject;
+    jArray : TJSONArray;
+
+begin
+
+    // foobar()
+
+    python := pythonFunction + '()';
+
+    jObject := TJSONObject.Create();
+    jObject.Add('command', 'run');
+
+    jArray := TJSONArray.Create();
+    jArray.Add( python );
+    jObject.Add('arguments', jArray);
+
+    command := jObject.AsJSON;
+    WriteLn(command);
+end;
+
+
+procedure MyRunner.GetField( field : AnsiString );
+var
+    command : AnsiString;
+    jObject : TJSONObject;
+    jArray : TJSONArray;
+
+begin
+    jObject := TJSONObject.Create();
+    jObject.Add('command', 'get');
+
+    jArray := TJSONArray.Create();
+    jArray.Add( field );
+    jObject.Add('arguments', jArray);
+
+    command := jObject.AsJSON;
+    WriteLn(command);
 end;
 
 
