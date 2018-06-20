@@ -57,10 +57,10 @@ begin
     client.CreateArray('array');
     sleep(100);
 
-    iterations := 100;
+    iterations := 2;
     for a := 0  to iterations - 1 do
     begin
-        size := 1000;
+        size := 10;
         SetLength(list, size);
 
         for b := 0  to size - 1 do

@@ -2,7 +2,7 @@ program client;
 
 {$mode objfpc}{$H+}
 
-uses Classes, SysUtils, TestCase;
+uses Classes, SysUtils, TestCase, Semaphores;
 
 var
     test : MyTestCase;

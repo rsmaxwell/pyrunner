@@ -5,7 +5,7 @@ unit StreamReader;
 interface
 
 uses
-  Classes, SysUtils, StreamIO, RunnerInterfaces;
+  Classes, SysUtils, StreamIO, RunnerInterfaces, Semaphores;
 
 type
     MyReader = class(TThread)
@@ -16,6 +16,7 @@ type
         line: string;
         observers : TInterfaceList;
         operation: TMyRunnerOperation;
+        semaphore: TSemaphore;
 
         procedure ReadInternal;
         procedure Update();
@@ -40,6 +41,7 @@ begin
     observers := obs;
     operation := op;
 
+    semaphore := TSemaphore.Create(1);
 end;
 
 procedure MyReader.Read(var buffer: TStrings);
@@ -51,19 +53,25 @@ end;
 
 procedure MyReader.ReadInternal();
 begin
+    semaphore.Wait();
     temp := linebuffer;
     linebuffer := TStringList.Create;
+    semaphore.Post();
 end;
 
 procedure MyReader.Update();
 begin
+    semaphore.Wait();
     linebuffer.Add(line);
+    semaphore.Post();
+
     notifyObservers();
 end;
 
 procedure MyReader.Execute; var
-  f: Text;
+    f: Text;
 begin
+
     while (not Terminated) do
     begin
         AssignStream(f, stream);
