@@ -13,11 +13,13 @@ data = json.loads('{}')
 def okResponse():
         response = {}
         response['status'] = "ok"
+        response['token'] = token
         eprint(json.dumps(response))
 
 def errorResponse(message):
         response = {}
         response['status'] = "error"
+        response['token'] = token
         response['message'] = message
         eprint(json.dumps(response))
 
@@ -38,13 +40,11 @@ def foobar():
     data['result']['count'] = len(data['array'])
     data['result']['total'] = total
 
-    okResponse()
-
-
 
 
 def quit( *args ):
     print("Quit")
+    okResponse()
     sys.exit()
 
 
@@ -103,7 +103,11 @@ def get( *args ):
 commands = {'quit': 'quit()', 'run': 'run()', 'get': 'get()'}
 
 while True:
+
+    token = "?????"
+
     json_string = input()
+    print('json_string: ', json_string)
 
     try:
         parsed_json = json.loads(json_string)
@@ -113,6 +117,14 @@ while True:
         print('json_string: ', json_string)
         print( sys.exc_info()[0] )
         continue
+
+    if 'token' not in parsed_json:
+        errorResponse("No 'token' field in input")
+        print("No 'token' field in input")
+        print(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))
+        continue
+
+    token = parsed_json['token']
 
     if 'command' not in parsed_json:
         errorResponse("No 'command' field in input")

@@ -11,16 +11,17 @@
         <UnitName Value="client"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="25" Y="14"/>
-        <UsageCount Value="102"/>
+        <UsageCount Value="106"/>
       </Unit0>
       <Unit1>
         <Filename Value="runner.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Runner"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="58"/>
-        <CursorPos X="38" Y="76"/>
-        <UsageCount Value="102"/>
+        <TopLine Value="19"/>
+        <CursorPos X="28" Y="49"/>
+        <UsageCount Value="106"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -30,7 +31,7 @@
         <EditorIndex Value="4"/>
         <TopLine Value="43"/>
         <CursorPos X="23" Y="89"/>
-        <UsageCount Value="102"/>
+        <UsageCount Value="106"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
@@ -39,15 +40,15 @@
         <UnitName Value="RunnerInterfaces"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="10"/>
-        <UsageCount Value="102"/>
+        <UsageCount Value="106"/>
       </Unit3>
       <Unit4>
         <Filename Value="testcase.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestCase"/>
-        <IsVisibleTab Value="True"/>
-        <CursorPos X="31" Y="32"/>
-        <UsageCount Value="102"/>
+        <TopLine Value="25"/>
+        <CursorPos X="32" Y="47"/>
+        <UsageCount Value="106"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
@@ -56,7 +57,7 @@
         <UnitName Value="Semaphores"/>
         <EditorIndex Value="2"/>
         <CursorPos Y="51"/>
-        <UsageCount Value="50"/>
+        <UsageCount Value="54"/>
         <Loaded Value="True"/>
       </Unit5>
       <Unit6>
@@ -64,8 +65,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="RunnerAsync"/>
         <EditorIndex Value="3"/>
-        <CursorPos X="39" Y="121"/>
-        <UsageCount Value="43"/>
+        <TopLine Value="73"/>
+        <CursorPos X="46" Y="94"/>
+        <UsageCount Value="47"/>
         <Loaded Value="True"/>
       </Unit6>
       <Unit7>
@@ -73,28 +75,28 @@
         <UnitName Value="IRunner"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="38" Y="4"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="12"/>
       </Unit7>
       <Unit8>
         <Filename Value="runnerobserver.pas"/>
         <UnitName Value="RunnerObserver"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="17" Y="26"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="12"/>
       </Unit8>
       <Unit9>
         <Filename Value="baseobject.pas"/>
         <UnitName Value="BaseObject"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="56" Y="7"/>
-        <UsageCount Value="16"/>
+        <UsageCount Value="15"/>
       </Unit9>
       <Unit10>
         <Filename Value="command.pas"/>
         <UnitName Value="Command"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="42" Y="13"/>
-        <UsageCount Value="16"/>
+        <UsageCount Value="15"/>
       </Unit10>
       <Unit11>
         <Filename Value="runnerlogger.pas"/>
@@ -102,155 +104,141 @@
         <UnitName Value="RunnerLogger"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="22" Y="16"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="25"/>
       </Unit11>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="runner.pas"/>
-        <Caret Line="8" Column="52"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="227" Column="14" TopLine="197"/>
       </Position1>
       <Position2>
-        <Filename Value="testcase.pas"/>
-        <Caret Line="15" Column="33"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="212" Column="19" TopLine="197"/>
       </Position2>
       <Position3>
-        <Filename Value="runner.pas"/>
-        <Caret Line="87" Column="28" TopLine="41"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="227" TopLine="197"/>
       </Position3>
       <Position4>
-        <Filename Value="runner.pas"/>
-        <Caret Line="84" Column="9" TopLine="54"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="121" TopLine="91"/>
       </Position4>
       <Position5>
-        <Filename Value="runner.pas"/>
-        <Caret Line="32" Column="16" TopLine="28"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="123" Column="46" TopLine="91"/>
       </Position5>
       <Position6>
-        <Filename Value="runner.pas"/>
-        <Caret Line="16" Column="43"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="119" TopLine="91"/>
       </Position6>
       <Position7>
-        <Filename Value="testcase.pas"/>
-        <Caret Line="13" Column="18"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="120" TopLine="79"/>
       </Position7>
       <Position8>
-        <Filename Value="runner.pas"/>
-        <Caret Line="14" Column="17"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="123" TopLine="90"/>
       </Position8>
       <Position9>
-        <Filename Value="runner.pas"/>
-        <Caret Line="13" Column="36"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="124" TopLine="90"/>
       </Position9>
       <Position10>
-        <Filename Value="runner.pas"/>
-        <Caret Line="40" Column="5" TopLine="10"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="166" TopLine="136"/>
       </Position10>
       <Position11>
-        <Filename Value="runner.pas"/>
-        <Caret Line="14" Column="16"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="255" TopLine="214"/>
       </Position11>
       <Position12>
-        <Filename Value="runner.pas"/>
-        <Caret Line="51" Column="42" TopLine="21"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="122" TopLine="92"/>
       </Position12>
       <Position13>
-        <Filename Value="runner.pas"/>
-        <Caret Line="59" Column="36" TopLine="21"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="255" TopLine="214"/>
       </Position13>
       <Position14>
-        <Filename Value="runner.pas"/>
-        <Caret Line="49" Column="20" TopLine="19"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="257" TopLine="214"/>
       </Position14>
       <Position15>
-        <Filename Value="runner.pas"/>
-        <Caret Line="20" Column="39" TopLine="10"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="258" TopLine="214"/>
       </Position15>
       <Position16>
-        <Filename Value="testcase.pas"/>
-        <Caret Line="11" Column="18"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="259" TopLine="214"/>
       </Position16>
       <Position17>
-        <Filename Value="runner.pas"/>
-        <Caret Line="89" Column="27" TopLine="34"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="261" TopLine="214"/>
       </Position17>
       <Position18>
-        <Filename Value="runner.pas"/>
-        <Caret Line="87" Column="13" TopLine="57"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="262" TopLine="214"/>
       </Position18>
       <Position19>
-        <Filename Value="runner.pas"/>
-        <Caret Line="68" Column="30" TopLine="57"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="264" TopLine="214"/>
       </Position19>
       <Position20>
-        <Filename Value="runner.pas"/>
-        <Caret Line="88" Column="30" TopLine="58"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="265" TopLine="214"/>
       </Position20>
       <Position21>
-        <Filename Value="runner.pas"/>
-        <Caret Line="68" Column="22" TopLine="58"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="267" TopLine="214"/>
       </Position21>
       <Position22>
-        <Filename Value="testcase.pas"/>
-        <Caret Line="11" Column="18"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="268" TopLine="214"/>
       </Position22>
       <Position23>
-        <Filename Value="testcase.pas"/>
-        <Caret Line="14" Column="19"/>
+        <Filename Value="runner.pas"/>
+        <Caret Line="130" TopLine="76"/>
       </Position23>
       <Position24>
-        <Filename Value="testcase.pas"/>
-        <Caret Line="69" Column="5" TopLine="23"/>
+        <Filename Value="runner.pas"/>
+        <Caret Line="30" Column="41" TopLine="4"/>
       </Position24>
       <Position25>
-        <Filename Value="testcase.pas"/>
-        <Caret Line="68" Column="4" TopLine="22"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="39" Column="46" TopLine="19"/>
       </Position25>
       <Position26>
-        <Filename Value="runner.pas"/>
-        <Caret Line="84" TopLine="58"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="128" TopLine="85"/>
       </Position26>
       <Position27>
-        <Filename Value="semaphores.pas"/>
-        <Caret Line="51"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="129" TopLine="85"/>
       </Position27>
       <Position28>
-        <Filename Value="runner.pas"/>
-        <Caret Line="84" TopLine="58"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="171" TopLine="141"/>
       </Position28>
       <Position29>
-        <Filename Value="runner.pas"/>
-        <Caret Line="86" TopLine="58"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="128" TopLine="98"/>
       </Position29>
       <Position30>
-        <Filename Value="runner.pas"/>
-        <Caret Line="88" TopLine="58"/>
+        <Filename Value="runnerasync.pas"/>
+        <Caret Line="129" TopLine="98"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>
   <Debugging>
-    <BreakPoints Count="3">
+    <BreakPoints Count="1">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="runner.pas"/>
-        <Line Value="132"/>
+        <Line Value="148"/>
       </Item1>
-      <Item2>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="runner.pas"/>
-        <Line Value="84"/>
-      </Item2>
-      <Item3>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="runner.pas"/>
-        <Line Value="88"/>
-      </Item3>
     </BreakPoints>
   </Debugging>
 </CONFIG>

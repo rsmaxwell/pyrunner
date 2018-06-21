@@ -15,7 +15,6 @@ type
         procedure notify( operation: TMyRunnerOperation );
     public
         constructor Create;
-        procedure Close();
         procedure attachLogger( logger : IMyRunnerLogger );
         procedure detachLogger( logger : IMyRunnerLogger );
 
@@ -23,6 +22,7 @@ type
         procedure ExtendArray( field : AnsiString; list : array of real );
         procedure RunPythonFunction( pythonFunction : AnsiString);
         procedure GetField(field : AnsiString);
+        procedure Close();
     end;
 
 
@@ -42,8 +42,11 @@ begin
 end;
 
 procedure MyRunner.Close();
+var
+    token : string;
 begin
-    asyncClient.Close;
+    token := asyncClient.Close;
+    writeln('MyRunner.Close: token = ' + token);
 end;
 
 procedure MyRunner.attachLogger( logger : IMyRunnerLogger );
@@ -97,26 +100,39 @@ end;
 //* Helpers
 // *****************************************************************************
 procedure MyRunner.CreateArray( field : AnsiString );
+var
+    token : string;
 begin
-    asyncClient.CreateArray( field );
+    token := asyncClient.CreateArray( field );
+    writeln('MyRunner.CreateArray: token = ' + token);
 end;
 
-procedure MyRunner.ExtendArray( field : AnsiString; list : array of real );
+procedure MyRunner.ExtendArray( field : AnsiString; list : array of real ); 
+var
+    token : string;
 begin
-    asyncClient.ExtendArray( field, list );
+    token := asyncClient.ExtendArray( field, list );
+    writeln('MyRunner.ExtendArray: token = ' + token);
 end;
 
 
 procedure MyRunner.RunPythonFunction( pythonFunction : AnsiString);
+var
+    token : string;
 begin
-    asyncClient.RunPythonFunction( pythonFunction );
+    token := asyncClient.RunPythonFunction( pythonFunction );
+    writeln('MyRunner.RunPythonFunction: token = ' + token);
 end;
 
 
-procedure MyRunner.GetField( field : AnsiString );
+procedure MyRunner.GetField( field : AnsiString ); 
+var
+    token : string;
 begin
-    asyncClient.GetField( field );
+    token := asyncClient.GetField( field ); 
+    writeln('MyRunner.GetField: token = ' + token);
 end;
+
 end.
 
 

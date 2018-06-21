@@ -30,6 +30,7 @@ var
 begin
     client := MyRunner.Create();
     client.attachLogger( self );
+    sleep(100);
 
     writeln('Create array' );
     client.CreateArray('array');

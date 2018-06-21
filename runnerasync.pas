@@ -15,20 +15,21 @@ type
         proc: TProcess;
         outputReader : MyReader;
         errorReader : MyReader;
-        observers: TInterfaceList;
+        observers: TInterfaceList; 
+        procedure WriteLn(line: AnsiString);
+        function makeToken() : string;
     public
         constructor Create;
-        procedure WriteLn(line: AnsiString);
         procedure Read(var lines: TStrings);
         procedure Errors(var lines: TStrings);
-        procedure Close();
         procedure attachObserver( observer : IMyRunnerObserver );
         procedure detachObserver( observer : IMyRunnerObserver );
 
-        procedure CreateArray(field : AnsiString);
-        procedure ExtendArray( field : AnsiString; list : array of real );
-        procedure RunPythonFunction( pythonFunction : AnsiString);
-        procedure GetField(field : AnsiString);
+        function CreateArray(field : AnsiString) : string;
+        function ExtendArray( field : AnsiString; list : array of real ) : string;
+        function RunPythonFunction( pythonFunction : AnsiString) : string;
+        function GetField(field : AnsiString) : string; 
+        function Close() : string;
     end;
 
 
@@ -41,6 +42,9 @@ const
     LineFeed: Byte = 10;
 
 
+// *****************************************************************************
+// * Basic
+// *****************************************************************************
 
 constructor MyRunnerAsync.Create();
 begin
@@ -87,14 +91,18 @@ begin
     errorReader.Read( lines );
 end;
 
-procedure MyRunnerAsync.Close();
+function MyRunnerAsync.Close(): string;
 var
     command : string;
     jObject : TJSONObject;
+    token : string;
 
 begin
     jObject := TJSONObject.Create();
     jObject.Add('command', 'quit');
+
+    token := makeToken();
+    jObject.Add('token', token);
 
     command := jObject.AsJSON;
     WriteLn(command);
@@ -108,7 +116,22 @@ begin
         errorReader.Terminate();
 
     proc.Terminate(0);
+
+    Close := token;
 end;
+
+function MyRunnerAsync.makeToken() : string;
+var
+    GUID: TGuid;
+begin
+    CreateGUID( GUID );
+    makeToken := GUIDToString( GUID );
+end;
+
+
+// *****************************************************************************
+// * Observers
+// *****************************************************************************
 
 procedure MyRunnerAsync.attachObserver( observer : IMyRunnerObserver );
 begin
@@ -122,14 +145,15 @@ begin
 end;
 
 // *****************************************************************************
-//* Helpers
+// * Helpers
 // *****************************************************************************
-procedure MyRunnerAsync.CreateArray( field : AnsiString );
+function MyRunnerAsync.CreateArray( field : AnsiString ) : string;
 var
     python : AnsiString;
     command : AnsiString;
     jObject : TJSONObject;
     jArray : TJSONArray;
+    token : string;
 
 begin
     // data["array"] = [] )
@@ -143,17 +167,23 @@ begin
     jArray.Add( python );
     jObject.Add('arguments', jArray);
 
+    token := makeToken();
+    jObject.Add('token', token);
+
     command := jObject.AsJSON;
     WriteLn(command);
+
+    CreateArray := token;
 end;
 
-procedure MyRunnerAsync.ExtendArray( field : AnsiString; list : array of real );
+function MyRunnerAsync.ExtendArray( field : AnsiString; list : array of real ) : string;
 var
     python : AnsiString;
     command : AnsiString;
     sep : string;
     jObject : TJSONObject;
-    jArray : TJSONArray;
+    jArray : TJSONArray; 
+    token : string;
     i : integer;
     value : real;
 
@@ -178,17 +208,23 @@ begin
     jArray.Add( python );
     jObject.Add('arguments', jArray);
 
+    token := makeToken();
+    jObject.Add('token', token);
+
     command := jObject.AsJSON;
     WriteLn(command);
+
+    ExtendArray := token;
 end;
 
 
-procedure MyRunnerAsync.RunPythonFunction( pythonFunction : AnsiString);
+function MyRunnerAsync.RunPythonFunction( pythonFunction : AnsiString) : string;
 var
     python : AnsiString;
     command : AnsiString;
     jObject : TJSONObject;
     jArray : TJSONArray;
+    token : string;
 
 begin
 
@@ -203,16 +239,22 @@ begin
     jArray.Add( python );
     jObject.Add('arguments', jArray);
 
+    token := makeToken();
+    jObject.Add('token', token);
+
     command := jObject.AsJSON;
     WriteLn(command);
+
+    RunPythonFunction := token
 end;
 
 
-procedure MyRunnerAsync.GetField( field : AnsiString );
+function MyRunnerAsync.GetField( field : AnsiString ) : string;
 var
     command : AnsiString;
     jObject : TJSONObject;
-    jArray : TJSONArray;
+    jArray : TJSONArray; 
+    token : string;
 
 begin
     jObject := TJSONObject.Create();
@@ -222,8 +264,13 @@ begin
     jArray.Add( field );
     jObject.Add('arguments', jArray);
 
+    token := makeToken();
+    jObject.Add('token', token);
+
     command := jObject.AsJSON;
     WriteLn(command);
+
+    GetField := token;
 end;
 
 
