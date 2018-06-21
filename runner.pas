@@ -5,22 +5,17 @@ unit Runner;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, StreamReader, RunnerInterfaces;
+  Classes, SysUtils, FileUtil, fpjson, jsonparser, RunnerAsync, RunnerInterfaces;
 
 
 
 type
-    MyRunner = class(TInterfacedObject, IMyRunnerObserved)
+    MyRunner = class(TInterfacedObject, IMyRunnerObserver)
     private
-        proc: TProcess;
-        outputReader : MyReader;
-        errorReader : MyReader;
-        observers: TInterfaceList;
+        asyncClient: MyRunnerAsync;
+        procedure notify( operation: TMyRunnerOperation );
     public
         constructor Create;
-        procedure WriteLn(line: AnsiString);
-        procedure Read(var lines: TStrings);
-        procedure Errors(var lines: TStrings);
         procedure Close();
         procedure attachObserver( observer : IMyRunnerObserver );
         procedure detachObserver( observer : IMyRunnerObserver );
@@ -36,189 +31,82 @@ type
 
 implementation
 
-const
-    CarriageReturn: Byte = 13;
-    LineFeed: Byte = 10;
 
-
-
+// *****************************************************************************
+//* Basic
+// *****************************************************************************
 constructor MyRunner.Create();
 begin
-    observers := TInterfaceList.Create;
-
-    proc := TProcess.Create(nil);
-    proc.Executable:= FindDefaultExecutablePath('python.exe');
-    proc.Parameters.Add('server.py');
-    proc.Options := proc.Options + [poUsePipes, poNoConsole];
-    proc.Execute;
-
-    outputReader := MyReader.Create(proc.Output, TMyRunnerOperation.stdout, observers);
-    errorReader := MyReader.Create(proc.Stderr, TMyRunnerOperation.stderr, observers);
-end;
-
-
-procedure MyRunner.WriteLn(line: AnsiString);
-var
-    bytes: TBytes;
-    i: integer;
-    b: Byte;
-begin
-    bytes := BytesOf(line);
-
-    for i := 0 to length(bytes) - 1 do
-    begin
-        b := bytes[i];
-        proc.Input.WriteByte( b );
-    end;
-
-    proc.Input.WriteByte( CarriageReturn );
-    proc.Input.WriteByte( LineFeed );
-end;
-
-
-procedure MyRunner.Read(var lines: TStrings);
-begin
-    outputReader.Read( lines );
-end;
-
-
-procedure MyRunner.Errors(var lines: TStrings);
-begin
-    errorReader.Read( lines );
+    asyncClient := MyRunnerAsync.Create;
+    asyncClient.attachObserver( self );
 end;
 
 procedure MyRunner.Close();
 begin
-    WriteLn('{ "command": "quit" }');
-
-    Sleep(100);
-
-    if not outputReader.Finished then
-        outputReader.Terminate();
-
-    if not errorReader.Finished then
-        errorReader.Terminate();
-
-    proc.Terminate(0);
+    asyncClient.Close;
 end;
 
 procedure MyRunner.attachObserver( observer : IMyRunnerObserver );
 begin
-    if observers.IndexOf(observer) = -1 then
-        observers.Add(IUnknown(observer));
+    asyncClient.attachObserver( observer );
 end;
 
 procedure MyRunner.detachObserver( observer : IMyRunnerObserver );
 begin
-    observers.Remove(observer);
+    asyncClient.detachObserver( observer );
 end;
+
+// *****************************************************************************
+//* Observer
+// *****************************************************************************
+procedure MyRunner.notify( operation: TMyRunnerOperation );
+var
+    opstring : string;
+    lines : TStrings;
+    line : AnsiString;
+    i : integer;
+begin
+    WriteStr(opstring, operation);
+
+    lines := TStringList.Create;
+
+    if operation = TMyRunnerOperation.stdout then
+        asyncClient.Read(lines)
+    else
+        asyncClient.Errors(lines);
+
+    For i := 0 to lines.Count - 1 do
+    begin
+        line := lines[i];
+        writeln(opstring + '   ' + line);
+    end;
+end;
+
 
 // *****************************************************************************
 //* Helpers
 // *****************************************************************************
 procedure MyRunner.CreateArray( field : AnsiString );
-var
-    python : AnsiString;
-    command : AnsiString;
-    jObject : TJSONObject;
-    jArray : TJSONArray;
-
 begin
-    // data["array"] = [] )
-
-    python := 'data["' + field + '"] = []';
-
-    jObject := TJSONObject.Create();
-    jObject.Add('command', 'run');
-
-    jArray := TJSONArray.Create();
-    jArray.Add( python );
-    jObject.Add('arguments', jArray);
-
-    command := jObject.AsJSON;
-    WriteLn(command);
+    asyncClient.CreateArray( field );
 end;
 
 procedure MyRunner.ExtendArray( field : AnsiString; list : array of real );
-var
-    python : AnsiString;
-    command : AnsiString;
-    sep : string;
-    jObject : TJSONObject;
-    jArray : TJSONArray;
-    i : integer;
-    value : real;
-
 begin
-
-    // data["array"].extend( (11,12,13) )
-
-    python := 'data["' + field + '"].extend( (';
-    sep := '';
-    for i := 0 to Length(list) - 1 do
-    begin
-        value := list[i];
-        python := python + sep + FloatToStr(value);
-        sep := ', ';
-    end;
-    python := python + ') )';
-
-    jObject := TJSONObject.Create();
-    jObject.Add('command', 'run');
-
-    jArray := TJSONArray.Create();
-    jArray.Add( python );
-    jObject.Add('arguments', jArray);
-
-    command := jObject.AsJSON;
-    WriteLn(command);
+    asyncClient.ExtendArray( field, list );
 end;
 
 
 procedure MyRunner.RunPythonFunction( pythonFunction : AnsiString);
-var
-    python : AnsiString;
-    command : AnsiString;
-    jObject : TJSONObject;
-    jArray : TJSONArray;
-
 begin
-
-    // foobar()
-
-    python := pythonFunction + '()';
-
-    jObject := TJSONObject.Create();
-    jObject.Add('command', 'run');
-
-    jArray := TJSONArray.Create();
-    jArray.Add( python );
-    jObject.Add('arguments', jArray);
-
-    command := jObject.AsJSON;
-    WriteLn(command);
+    asyncClient.RunPythonFunction( pythonFunction );
 end;
 
 
 procedure MyRunner.GetField( field : AnsiString );
-var
-    command : AnsiString;
-    jObject : TJSONObject;
-    jArray : TJSONArray;
-
 begin
-    jObject := TJSONObject.Create();
-    jObject.Add('command', 'get');
-
-    jArray := TJSONArray.Create();
-    jArray.Add( field );
-    jObject.Add('arguments', jArray);
-
-    command := jObject.AsJSON;
-    WriteLn(command);
+    asyncClient.GetField( field );
 end;
-
-
 end.
 
 
