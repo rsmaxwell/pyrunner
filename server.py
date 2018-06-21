@@ -13,15 +13,14 @@ data = json.loads('{}')
 def okResponse():
         response = {}
         response['status'] = "ok"
-        json.dump(response, sys.stdout)
-        print()
+        eprint(json.dumps(response))
 
 def errorResponse(message):
         response = {}
         response['status'] = "error"
         response['message'] = message
-        json.dump(response, sys.stdout)
-        print()
+        eprint(json.dumps(response))
+
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -29,7 +28,7 @@ def eprint(*args, **kwargs):
 
 
 def foobar():
-    eprint("FooBar")
+    print("FooBar")
 
     total = 0.0
     for value in data['array']:
@@ -45,7 +44,7 @@ def foobar():
 
 
 def quit( *args ):
-    eprint("Quit")
+    print("Quit")
     sys.exit()
 
 
@@ -53,7 +52,7 @@ def quit( *args ):
 
 
 def run( *args ):
-    eprint("Run")
+    print("Run")
 
     arguments = json.loads('[]')
     if 'arguments' in parsed_json:
@@ -67,17 +66,17 @@ def run( *args ):
 
     try:
         exec( python )
-        print("{ \"status\": \"ok\" }")
+        okResponse()
     except Exception as e:
         errorResponse("Caught exception: " + str(e))
-        eprint( sys.exc_info()[0] )
+        print( sys.exc_info()[0] )
 
 
 
 
 
 def get( *args ):
-    eprint("Get")
+    print("Get")
 
     arguments = json.loads('[]')
     if 'arguments' in parsed_json:
@@ -89,15 +88,15 @@ def get( *args ):
 
     field = arguments[0]
 
-    returnvalue = json.loads('{}')
+    response = {}
     if field in data:
-        returnvalue['status'] = 'ok'
-        returnvalue['value'] = data[ field ]
+        response['status'] = 'ok'
+        response['value'] = data[ field ]
     else:
-        returnvalue['status'] = 'error'
-        returnvalue['message'] = "field '" + field + "' not found"
+        response['status'] = 'error'
+        response['message'] = "field '" + field + "' not found"
 
-    print(json.dumps(returnvalue))
+    eprint(json.dumps(response))
 
 
 
@@ -110,15 +109,15 @@ while True:
         parsed_json = json.loads(json_string)
     except Exception as e:
         errorResponse("Failed to parse input as json:" + str(e))
-        eprint('Failed to parse input as json')
-        eprint('json_string: ', json_string)
-        eprint( sys.exc_info()[0] )
+        print('Failed to parse input as json')
+        print('json_string: ', json_string)
+        print( sys.exc_info()[0] )
         continue
 
     if 'command' not in parsed_json:
         errorResponse("No 'command' field in input")
-        eprint("No 'command' field in input")
-        eprint(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))
+        print("No 'command' field in input")
+        print(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))
         continue
 
     command_string = parsed_json['command']
@@ -126,8 +125,8 @@ while True:
 
     if command is None:
         errorResponse("Unexpected command: " + command_string)
-        eprint("Unexpected command: " + command_string)
-        eprint(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))
+        print("Unexpected command: " + command_string)
+        print(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))
         continue
 
     try:
@@ -135,9 +134,9 @@ while True:
 
     except Exception as e:
         errorResponse("Caught exception: " + str(e))
-        eprint("Caught exception: " + str(e))
-        eprint( sys.exc_info()[0] )
-        eprint(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))
+        print("Caught exception: " + str(e))
+        print( sys.exc_info()[0] )
+        print(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))
         continue
 
 
