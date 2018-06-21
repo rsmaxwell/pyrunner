@@ -31,7 +31,7 @@
         <PackageName Value="LazUtils"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="8">
       <Unit0>
         <Filename Value="test.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -67,6 +67,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="RunnerAsync"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="runnerlogger.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RunnerLogger"/>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -5,12 +5,13 @@ unit TestCase;
 interface
 
 uses
-  Classes, SysUtils, fpjson, jsonparser, Runner;
+  Classes, SysUtils, fpjson, jsonparser, Runner, RunnerLogger;
 
 type
-    MyTestCase = class
+    MyTestCase = class(TInterfacedObject, IMyRunnerLogger)
     private
         client : MyRunner;
+        procedure log( lines: TStrings );
     public
         procedure simpleTest();
     end;
@@ -28,6 +29,7 @@ var
 
 begin
     client := MyRunner.Create();
+    client.attachLogger( self );
 
     writeln('Create array' );
     client.CreateArray('array');
@@ -60,6 +62,20 @@ begin
     sleep(100);
 end;
 
+// *****************************************************************************
+//* Observer
+// *****************************************************************************
+procedure MyTestCase.log( lines: TStrings );
+var
+    line : AnsiString;
+    i : integer;
+begin
+    For i := 0 to lines.Count - 1 do
+    begin
+        line := lines[i];
+        writeln('stdout   ' + line);
+    end;
+end;
 
 
 end.
