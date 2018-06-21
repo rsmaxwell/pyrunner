@@ -88,8 +88,16 @@ begin
 end;
 
 procedure MyRunnerAsync.Close();
+var
+    command : string;
+    jObject : TJSONObject;
+
 begin
-    WriteLn('{ "command": "quit" }');
+    jObject := TJSONObject.Create();
+    jObject.Add('command', 'quit');
+
+    command := jObject.AsJSON;
+    WriteLn(command);
 
     Sleep(100);
 

@@ -54,6 +54,10 @@ begin
     writeln('Get result' );
     client.GetField('result');
     sleep(100);
+
+    writeln('Close' );
+    client.Close();
+    sleep(100);
 end;
 
 
