@@ -91,9 +91,11 @@ def get( *args ):
     response = {}
     if field in data:
         response['status'] = 'ok'
+        response['token'] = token
         response['value'] = data[ field ]
     else:
         response['status'] = 'error'
+        response['token'] = token
         response['message'] = "field '" + field + "' not found"
 
     eprint(json.dumps(response))

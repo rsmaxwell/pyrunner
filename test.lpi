@@ -31,7 +31,7 @@
         <PackageName Value="LazUtils"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="test.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -72,6 +72,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="RunnerLogger"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="responseitem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ResponseItem"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

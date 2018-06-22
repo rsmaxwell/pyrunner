@@ -5,9 +5,12 @@ unit RunnerAsync;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, StreamReader, RunnerInterfaces;
+  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, StreamReader, RunnerInterfaces, ResponseItem, gmap, gutil;
 
 
+type
+    CompareStrings = specialize TLess<AnsiString>;
+    ResponseTreeMap = specialize TMap<AnsiString, MyResponseItem, CompareStrings>;
 
 type
     MyRunnerAsync = class(TInterfacedObject, IMyRunnerObserved)
@@ -15,7 +18,10 @@ type
         proc: TProcess;
         outputReader : MyReader;
         errorReader : MyReader;
-        observers: TInterfaceList; 
+        observers: TInterfaceList;
+
+        response : ResponseTreeMap;
+
         procedure WriteLn(line: AnsiString);
         function makeToken() : string;
     public
@@ -24,6 +30,9 @@ type
         procedure Errors(var lines: TStrings);
         procedure attachObserver( observer : IMyRunnerObserver );
         procedure detachObserver( observer : IMyRunnerObserver );
+
+        function WaitForResponse( token : string ) : AnsiString;
+        procedure postResponseItem( line: AnsiString );
 
         function CreateArray(field : AnsiString) : string;
         function ExtendArray( field : AnsiString; list : array of real ) : string;
@@ -49,6 +58,8 @@ const
 constructor MyRunnerAsync.Create();
 begin
     observers := TInterfaceList.Create;
+    response := ResponseTreeMap.create;
+
 
     proc := TProcess.Create(nil);
     proc.Executable:= FindDefaultExecutablePath('python.exe');
@@ -103,9 +114,9 @@ begin
 
     token := makeToken();
     jObject.Add('token', token);
-
     command := jObject.AsJSON;
     WriteLn(command);
+    response[ token ] := MyResponseItem.Create();
 
     Sleep(100);
 
@@ -126,6 +137,78 @@ var
 begin
     CreateGUID( GUID );
     makeToken := GUIDToString( GUID );
+end;
+
+
+function MyRunnerAsync.WaitForResponse( token : string ) : AnsiString;
+var
+    responseItem : MyResponseItem;
+begin
+    responseItem := response[ token ];
+    responseItem.semaphore.Wait();
+    response.delete( token );
+    WaitForResponse := responseItem.line;
+    responseItem.Destroy();
+end;
+
+
+
+procedure MyRunnerAsync.postResponseItem( line: AnsiString );
+var
+    jData : TJSONData;
+    jtype : TJSONtype;
+    jObject : TJSONObject;
+    token: string;
+    responseItem : MyResponseItem;
+    code : integer;
+
+begin
+    try
+    begin
+        jData := GetJSON( line );
+        jtype := jData.JSONType();
+
+        if  jtype = TJSONType.jtObject then
+        begin
+            jObject := jData as TJSONObject;
+
+            jData := jObject.Find('token');
+            if jData = Nil then
+            begin
+                code := -1;
+                // message := ' The "token" field is missing';
+            end
+            else
+            begin
+                jtype := jData.JSONType();
+                if  jtype = TJSONType.jtString then
+                    token := jObject.Get('token')
+                else
+                begin
+                    code := 3;
+                    // jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                    // message := 'Error: unexpected token type. jType = ' + jTypeString;
+                end;
+            end;
+
+            responseItem := response[ token ];
+            responseItem.line := line;
+            responseItem.semaphore.Post();
+        end
+        else
+        begin
+            code := 3;
+            // message := 'Error: unexpected response. jType = ' + jTypeString;
+        end;
+    end;
+
+    Except
+        on E: Exception do
+        begin
+            // code := 4;
+            // message := 'Error: '+ E.ClassName + ': ' + E.Message;
+        end;
+    end;
 end;
 
 
@@ -169,11 +252,11 @@ begin
 
     token := makeToken();
     jObject.Add('token', token);
-
     command := jObject.AsJSON;
     WriteLn(command);
+    response[ token ] := MyResponseItem.Create();
 
-    CreateArray := token;
+    CreateArray := token
 end;
 
 function MyRunnerAsync.ExtendArray( field : AnsiString; list : array of real ) : string;
@@ -210,9 +293,9 @@ begin
 
     token := makeToken();
     jObject.Add('token', token);
-
     command := jObject.AsJSON;
     WriteLn(command);
+    response[ token ] := MyResponseItem.Create();
 
     ExtendArray := token;
 end;
@@ -241,9 +324,9 @@ begin
 
     token := makeToken();
     jObject.Add('token', token);
-
     command := jObject.AsJSON;
     WriteLn(command);
+    response[ token ] := MyResponseItem.Create();
 
     RunPythonFunction := token
 end;
@@ -266,9 +349,10 @@ begin
 
     token := makeToken();
     jObject.Add('token', token);
-
     command := jObject.AsJSON;
     WriteLn(command);
+    response[ token ] := MyResponseItem.Create();
+
 
     GetField := token;
 end;

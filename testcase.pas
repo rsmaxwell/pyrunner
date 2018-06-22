@@ -5,7 +5,7 @@ unit TestCase;
 interface
 
 uses
-  Classes, SysUtils, fpjson, jsonparser, Runner, RunnerLogger;
+  Classes, SysUtils, fpjson, jsonparser, Math, Runner, RunnerLogger;
 
 type
     MyTestCase = class(TInterfacedObject, IMyRunnerLogger)
@@ -26,15 +26,25 @@ var
     list : array of real;
     iterations : integer;
     size : integer;
+    rc : integer;
+    rc2 : integer;
+    ErrorMessage : AnsiString;
 
 begin
+    rc := 0;
+
     client := MyRunner.Create();
     client.attachLogger( self );
-    sleep(100);
 
-    writeln('Create array' );
-    client.CreateArray('array');
-    sleep(100);
+    if rc = 0 then
+    begin
+        writeln('Create array' );
+        rc := client.CreateArray('array', ErrorMessage);
+        if rc <> 0 then
+        begin
+            writeln( ErrorMessage );
+        end;
+    end;
 
     iterations := 2;
     for a := 0  to iterations - 1 do
@@ -45,22 +55,44 @@ begin
         for b := 0  to size - 1 do
             list[b] := random();
 
-        writeln('Add items to array' );
-        client.ExtendArray('array', list);
-        sleep(100);
+        if rc = 0 then
+        begin
+            writeln('Add items to array' );
+            rc := client.ExtendArray('array', list, ErrorMessage);
+            if rc <> 0 then
+            begin
+                writeln( ErrorMessage );
+            end;
+        end;
     end;
 
-    writeln('Run python function' );
-    client.RunPythonFunction( 'foobar' );
-    sleep(100);
+    if rc = 0 then
+    begin
+        writeln('Run python function' );
+        rc := client.RunPythonFunction( 'foobar', ErrorMessage );
+        if rc <> 0 then
+        begin
+            writeln( ErrorMessage );
+        end;
+    end;
 
-    writeln('Get result' );
-    client.GetField('result');
-    sleep(100);
+    if rc = 0 then
+    begin
+        writeln('Get result' );
+        rc := client.GetField('result', ErrorMessage);
+        if rc <> 0 then
+        begin
+            writeln( ErrorMessage );
+        end;
+    end;
 
     writeln('Close' );
-    client.Close();
-    sleep(100);
+    rc2 := client.Close( ErrorMessage );
+    if rc2 <> 0 then
+    begin
+        rc := Max( rc, rc2);
+        writeln( ErrorMessage );
+    end;
 end;
 
 // *****************************************************************************
