@@ -92,7 +92,7 @@ def get( *args ):
     if field in data:
         response['status'] = 'ok'
         response['token'] = token
-        response['value'] = data[ field ]
+        response['result'] = data[ field ]
     else:
         response['status'] = 'error'
         response['token'] = token
@@ -109,7 +109,8 @@ while True:
     token = "?????"
 
     json_string = input()
-    print('json_string: ', json_string)
+    debug = (json_string[:100] + '...') if len(json_string) > 100 else json_string
+    print('input = ', debug)
 
     try:
         parsed_json = json.loads(json_string)
@@ -127,6 +128,7 @@ while True:
         continue
 
     token = parsed_json['token']
+    print('token = ', token)
 
     if 'command' not in parsed_json:
         errorResponse("No 'command' field in input")
@@ -136,6 +138,7 @@ while True:
 
     command_string = parsed_json['command']
     command = commands.get(command_string)
+    print('command = ', command)
 
     if command is None:
         errorResponse("Unexpected command: " + command_string)

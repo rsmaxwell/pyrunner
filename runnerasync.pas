@@ -102,35 +102,6 @@ begin
     errorReader.Read( lines );
 end;
 
-function MyRunnerAsync.Close(): string;
-var
-    command : string;
-    jObject : TJSONObject;
-    token : string;
-
-begin
-    jObject := TJSONObject.Create();
-    jObject.Add('command', 'quit');
-
-    token := makeToken();
-    jObject.Add('token', token);
-    command := jObject.AsJSON;
-    WriteLn(command);
-    response[ token ] := MyResponseItem.Create();
-
-    Sleep(100);
-
-    if not outputReader.Finished then
-        outputReader.Terminate();
-
-    if not errorReader.Finished then
-        errorReader.Terminate();
-
-    proc.Terminate(0);
-
-    Close := token;
-end;
-
 function MyRunnerAsync.makeToken() : string;
 var
     GUID: TGuid;
@@ -158,6 +129,7 @@ var
     jData : TJSONData;
     jtype : TJSONtype;
     jObject : TJSONObject;
+    jToken : TJSONString;
     token: string;
     responseItem : MyResponseItem;
     code : integer;
@@ -182,7 +154,10 @@ begin
             begin
                 jtype := jData.JSONType();
                 if  jtype = TJSONType.jtString then
-                    token := jObject.Get('token')
+                begin
+                    jToken := jData as TJSONString;
+                    token := jToken.AsString;
+                end
                 else
                 begin
                     code := 3;
@@ -239,7 +214,7 @@ var
     token : string;
 
 begin
-    // data["array"] = [] )
+    // data["array"] = []
 
     python := 'data["' + field + '"] = []';
 
@@ -355,6 +330,35 @@ begin
 
 
     GetField := token;
+end;
+
+function MyRunnerAsync.Close(): string;
+var
+    command : string;
+    jObject : TJSONObject;
+    token : string;
+
+begin
+    jObject := TJSONObject.Create();
+    jObject.Add('command', 'quit');
+
+    token := makeToken();
+    jObject.Add('token', token);
+    command := jObject.AsJSON;
+    WriteLn(command);
+    response[ token ] := MyResponseItem.Create();
+
+    Sleep(100);
+
+    if not outputReader.Finished then
+        outputReader.Terminate();
+
+    if not errorReader.Finished then
+        errorReader.Terminate();
+
+    proc.Terminate(0);
+
+    Close := token;
 end;
 
 

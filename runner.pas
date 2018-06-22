@@ -5,7 +5,7 @@ unit Runner;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, fpjson, jsonparser, typinfo, RunnerAsync, RunnerInterfaces, RunnerLogger, ResponseItem;
+  Classes, SysUtils, FileUtil, fpjson, jsonparser, typinfo, RunnerAsync, RunnerInterfaces, RunnerLogger;
 
 type
     MyRunner = class(TInterfacedObject, IMyRunnerObserver)
@@ -13,7 +13,9 @@ type
         asyncClient: MyRunnerAsync; 
         loggers: TInterfaceList;
         procedure notify( operation: TMyRunnerOperation );
-        function handleResponse( line: AnsiString; var message : AnsiString; jObject : TJSONObject ) : integer;
+        function handleResponse( line: AnsiString; var message : AnsiString; var jObject : TJSONObject ) : integer;
+        procedure log( lines : TStrings );
+        procedure log( line : AnsiString );
 
     public
         constructor Create;
@@ -23,7 +25,7 @@ type
         function CreateArray( field : AnsiString; var ErrorMessage : AnsiString ) : integer;
         function ExtendArray( field : AnsiString; list : array of real; var ErrorMessage : AnsiString ) : integer;
         function RunPythonFunction( pythonFunction : AnsiString; var ErrorMessage : AnsiString ) : integer;
-        function GetField(field : AnsiString; var ErrorMessage : AnsiString ) : integer;
+        function GetResult(field : AnsiString; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
         function Close(var ErrorMessage : AnsiString ) : integer;
     end;
 
@@ -54,6 +56,29 @@ begin
     loggers.Remove(logger);
 end;
 
+procedure MyRunner.log( lines : TStrings );
+var
+    i : integer;
+    logger : IUnknown;
+begin
+    for i := 0 to loggers.Count - 1 do
+    begin
+        logger := loggers[i];
+        with logger as IMyRunnerLogger do
+            log( lines );
+    end;
+end;
+
+procedure MyRunner.log( line : AnsiString );
+var
+    lines : TStrings;
+begin
+    lines := TStringList.Create;
+    lines.Add( line );
+    log( lines );
+end;
+
+
 // *****************************************************************************
 //* Observer
 // *****************************************************************************
@@ -62,7 +87,6 @@ var
     lines : TStrings;
     line : AnsiString;
     i : integer;
-    logger : IUnknown;
 
 begin 
     lines := TStringList.Create;
@@ -74,25 +98,27 @@ begin
         begin
             line := lines[i];
             asyncClient.postResponseItem( line );
+            log( 'asyncClient.postResponseItem: ' + line);
         end;
     end
     else
     begin
         asyncClient.Read(lines);
-        for i := 0 to loggers.Count - 1 do
+        For i := 0 to lines.Count - 1 do
         begin
-            logger := loggers[i];
-            with logger as IMyRunnerLogger do
-                log( lines );
+            line := lines[i];
+            log( 'python: ' + line);
         end;
     end;
 end;
 
-function MyRunner.handleResponse( line: AnsiString; var message : AnsiString; jObject : TJSONObject ) : integer;
+function MyRunner.handleResponse( line: AnsiString; var message : AnsiString; var jObject : TJSONObject ) : integer;
 var
     jData : TJSONData;
     jtype : TJSONtype;
     jTypeString : string;
+    jStatus : TJSONString;
+    jMessage : TJSONString;
     status : string;
     code : integer;
 
@@ -117,7 +143,8 @@ begin
                 jtype := jData.JSONType();
                 if  jtype = TJSONType.jtString then
                 begin
-                    status := jObject.Get('status');
+                    jStatus := jData as TJSONString;
+                    status := jStatus.AsString;
 
                     if (status = 'ok') then
                         code := 0
@@ -132,14 +159,17 @@ begin
                     jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
                     message := 'Error: unexpected status type. jType = ' + jTypeString;
                 end;
-             end;
+            end;
 
             jData := jObject.Find('message');
             if jData <> Nil then
             begin
                 jtype := jData.JSONType();
                 if  jtype = TJSONType.jtString then
-                    message := jObject.Get('status')
+                begin
+                    jMessage := jData as TJSONString;
+                    message := jMessage.AsString;
+                end
                 else
                 begin
                     code := 3;
@@ -178,10 +208,9 @@ var
     token : string;
     line : AnsiString;
     jObject : TJSONObject;
-    code : integer;
 begin
     token := asyncClient.CreateArray( field );
-    writeln('MyRunner.CreateArray: token = ' + token);
+    log('MyRunner.CreateArray: token = ' + token);
 
     line := asyncClient.WaitForResponse( token );
     CreateArray := handleResponse( line, ErrorMessage, jObject );
@@ -193,10 +222,9 @@ var
     token : string;
     line : AnsiString;
     jObject : TJSONObject;
-    code : integer;
 begin
     token := asyncClient.ExtendArray( field, list );
-    writeln('MyRunner.ExtendArray: token = ' + token);
+    log('MyRunner.ExtendArray: token = ' + token);
 
     line := asyncClient.WaitForResponse( token );
     ExtendArray := handleResponse( line, ErrorMessage, jObject );
@@ -208,28 +236,108 @@ var
     token : string; 
     line : AnsiString;
     jObject : TJSONObject;
-    code : integer;
 begin
     token := asyncClient.RunPythonFunction( pythonFunction );
-    writeln('MyRunner.RunPythonFunction: token = ' + token);
+    log('MyRunner.RunPythonFunction: token = ' + token);
 
-    line := asyncClient.WaitForResponse( token );  
+    line := asyncClient.WaitForResponse( token );
     RunPythonFunction := handleResponse( line, ErrorMessage, jObject );
 end;
 
 
-function MyRunner.GetField( field : AnsiString; var ErrorMessage : AnsiString ) : integer;
+function MyRunner.GetResult(field : AnsiString; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
 var
     token : string;
     line : AnsiString;
     jObject : TJSONObject;
     code : integer;
-begin
-    token := asyncClient.GetField( field ); 
-    writeln('MyRunner.GetField: token = ' + token);
+    jData : TJSONData;
+    jResult : TJSONObject;
+    jtype : TJSONtype;
+    jTypeString : string;
+    jCount : TJSONIntegerNumber;
+    jTotal : TJSONFloatNumber;
 
-    line := asyncClient.WaitForResponse( token ); 
-    GetField := handleResponse( line, ErrorMessage, jObject );
+begin
+    token := asyncClient.GetField( field );
+    log('MyRunner.GetResult: token = ' + token);
+
+    line := asyncClient.WaitForResponse( token );
+    code := handleResponse( line, ErrorMessage, jObject );
+
+    if code = 0 then
+    begin
+        jData := jObject.Find('result');
+        if jData = Nil then
+        begin
+            code := 1;
+            ErrorMessage := 'The "result" field is missing';
+        end
+        else
+        begin
+            jtype := jData.JSONType();
+            if  jtype = TJSONType.jtObject then
+                jResult := jData as TJSONObject
+            else
+            begin
+                code := 3;
+                jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                ErrorMessage := 'Error: unexpected result type. jType = ' + jTypeString;
+            end;
+        end;
+    end;
+
+    if code = 0 then
+    begin
+        jData := jResult.Find('count');
+        if jData = Nil then
+        begin
+            code := 1;
+            ErrorMessage := 'Error: The "result.count" field is missing';
+        end
+        else
+        begin
+            jtype := jData.JSONType();
+            if  jtype = TJSONType.jtNumber then
+            begin
+                jCount := jData as TJSONIntegerNumber;
+                count := jCount.AsInteger;
+            end
+            else
+            begin
+                code := 3;
+                jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                ErrorMessage := 'Error: Unexpected result.count type: jType = ' + jTypeString;
+            end;
+        end;
+    end;
+
+    if code = 0 then
+    begin
+        jData := jResult.Find('total');
+        if jData = Nil then
+        begin
+            code := 1;
+            ErrorMessage := 'Error: The "result.total" field is missing';
+        end
+        else
+        begin
+            jtype := jData.JSONType();
+            if  jtype = TJSONType.jtNumber then
+            begin
+                jTotal := jData as TJSONFloatNumber;
+                total := jTotal.AsFloat;
+            end
+            else
+            begin
+                code := 3;
+                jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                ErrorMessage := 'Error: Unexpected result.total type: jType = ' + jTypeString;
+            end;
+        end;
+    end;
+
+    GetResult := code;
 end;
 
 function MyRunner.Close( var ErrorMessage : AnsiString ) : integer;
@@ -237,10 +345,9 @@ var
     token : string;
     line : AnsiString;
     jObject : TJSONObject;
-    code : integer;
 begin
     token := asyncClient.Close;
-    writeln('MyRunner.Close: token = ' + token); 
+    log('MyRunner.Close: token = ' + token);
 
     line := asyncClient.WaitForResponse( token );
     Close := handleResponse( line, ErrorMessage, jObject );
