@@ -14,7 +14,8 @@ const
   type
     TMyRunnerOperation = (
         stdout,
-        stderr
+        stderr,
+        logger
     );
 
     IMyRunnerObserver = interface

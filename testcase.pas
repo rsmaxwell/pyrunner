@@ -41,7 +41,7 @@ begin
 
     writeln('Startup' );
     client := MyRunner.Create();
-    // client.attachLogger( self );
+    client.attachLogger( self );
 
     if rc = 0 then
     begin
@@ -134,7 +134,6 @@ var
     ErrorMessage : AnsiString;
     functionName : string;
     starttime : TDateTime;
-    endtime : TDateTime;
 
 begin
     rc := 0;
@@ -143,7 +142,7 @@ begin
     starttime := Now;
     client := MyRunner.Create();
     Writeln('milliseconds: ', MilliSecondsBetween(Now, starttime));
-    // client.attachLogger( self );
+    client.attachLogger( self );
 
     if rc = 0 then
     begin

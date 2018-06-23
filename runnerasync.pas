@@ -5,7 +5,7 @@ unit RunnerAsync;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, StreamReader, RunnerInterfaces, ResponseItem, gmap, gutil;
+  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, typinfo, StreamReader, RunnerInterfaces, ResponseItem, gmap, gutil, Semaphores;
 
 
 type
@@ -19,18 +19,26 @@ type
         outputReader : MyReader;
         errorReader : MyReader;
         observers: TInterfaceList;
-
         response : ResponseTreeMap;
+
+        linebuffer: TStrings;
+        temp: TStrings;
+        semaphore: TSemaphore;
 
         procedure WriteLn(line: AnsiString);
         function makeToken() : string;
+        procedure log( line: AnsiString );
+        procedure ReadLogInternal();
+        procedure notifyObservers();
+
     public
         constructor Create;
         procedure Read(var lines: TStrings);
         procedure Errors(var lines: TStrings);
         procedure attachObserver( observer : IMyRunnerObserver );
         procedure detachObserver( observer : IMyRunnerObserver );
-
+        
+        procedure ReadLog(var buffer: TStrings);
         function WaitForResponse( token : string ) : AnsiString;
         procedure postResponseItem( line: AnsiString );
 
@@ -59,7 +67,8 @@ constructor MyRunnerAsync.Create();
 begin
     observers := TInterfaceList.Create;
     response := ResponseTreeMap.create;
-
+    linebuffer := TStringList.Create;
+    semaphore := TSemaphore.Create(1);
 
     proc := TProcess.Create(nil);
     proc.Executable:= FindDefaultExecutablePath('python.exe');
@@ -132,11 +141,13 @@ var
     jToken : TJSONString;
     token: string;
     responseItem : MyResponseItem;
-    code : integer;
+    jTypeString : string;
 
 begin
     try
     begin
+        log( 'MyRunnerAsync.postResponseItem: ' + line);
+
         jData := GetJSON( line );
         jtype := jData.JSONType();
 
@@ -146,10 +157,7 @@ begin
 
             jData := jObject.Find('token');
             if jData = Nil then
-            begin
-                code := -1;
-                // message := ' The "token" field is missing';
-            end
+                log( 'MyRunnerAsync.postResponseItem: The "token" field is missing' )
             else
             begin
                 jtype := jData.JSONType();
@@ -160,9 +168,8 @@ begin
                 end
                 else
                 begin
-                    code := 3;
-                    // jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-                    // message := 'Error: unexpected token type. jType = ' + jTypeString;
+                    jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                    log( 'MyRunnerAsync.postResponseItem: Error: unexpected token type. jType = ' + jTypeString );
                 end;
             end;
 
@@ -172,16 +179,14 @@ begin
         end
         else
         begin
-            code := 3;
-            // message := 'Error: unexpected response. jType = ' + jTypeString;
+            log( 'MyRunnerAsync.postResponseItem: Error: unexpected response. jType = ' + jTypeString );
         end;
     end;
 
     Except
         on E: Exception do
         begin
-            // code := 4;
-            // message := 'Error: '+ E.ClassName + ': ' + E.Message;
+            log( 'MyRunnerAsync.postResponseItem: Error: '+ E.ClassName + ': ' + E.Message );
         end;
     end;
 end;
@@ -200,6 +205,48 @@ end;
 procedure MyRunnerAsync.detachObserver( observer : IMyRunnerObserver );
 begin
     observers.Remove(observer);
+end;
+
+
+// *****************************************************************************
+// * Logging
+// *****************************************************************************
+
+procedure MyRunnerAsync.log( line: AnsiString );
+begin
+    semaphore.Wait();
+    linebuffer.Add(line);
+    semaphore.Post();
+
+    notifyObservers();
+end;
+
+procedure MyRunnerAsync.ReadLog(var buffer: TStrings);
+begin
+    ReadLogInternal;
+    buffer := temp;
+end;
+
+procedure MyRunnerAsync.ReadLogInternal();
+begin
+    semaphore.Wait();
+    temp := linebuffer;
+    linebuffer := TStringList.Create;
+    semaphore.Post();
+end;
+
+
+procedure MyRunnerAsync.notifyObservers();
+var
+   observer: IUnknown;
+   i: Integer;
+begin
+   for i := 0 to observers.Count - 1 do
+   begin
+       observer := observers[i];
+       with observer as IMyRunnerObserver do
+           notify( TMyRunnerOperation.logger );
+   end;
 end;
 
 // *****************************************************************************

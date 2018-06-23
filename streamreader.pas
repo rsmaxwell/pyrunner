@@ -47,7 +47,6 @@ end;
 procedure MyReader.Read(var buffer: TStrings);
 begin
     ReadInternal;
-
     buffer := temp;
 end;
 

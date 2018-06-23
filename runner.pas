@@ -98,16 +98,24 @@ begin
         begin
             line := lines[i];
             asyncClient.postResponseItem( line );
-            log( 'asyncClient.postResponseItem: ' + line);
         end;
     end
-    else
+    else if operation = TMyRunnerOperation.stdout then
     begin
         asyncClient.Read(lines);
         For i := 0 to lines.Count - 1 do
         begin
             line := lines[i];
             log( 'python: ' + line);
+        end;
+    end
+    else // logger
+    begin
+        asyncClient.ReadLog(lines);
+        For i := 0 to lines.Count - 1 do
+        begin
+            line := lines[i];
+            log(line);
         end;
     end;
 end;
