@@ -215,13 +215,17 @@ function MyRunner.CreateArray( field : AnsiString; var ErrorMessage : AnsiString
 var
     token : string;
     line : AnsiString;
-    jObject : TJSONObject;
+    jObject : TJSONObject; 
+    code : integer;
 begin
     token := asyncClient.CreateArray( field );
-    log('MyRunner.CreateArray: token = ' + token);
+    log('MyRunner.CreateArray: entry: ' + token);
 
     line := asyncClient.WaitForResponse( token );
-    CreateArray := handleResponse( line, ErrorMessage, jObject );
+    code := handleResponse( line, ErrorMessage, jObject );
+    log('MyRunner.ExtendArray: exit(' + IntToStr(code) + '): ' + token);
+
+    CreateArray := code;
 end;
 
 
@@ -230,12 +234,16 @@ var
     token : string;
     line : AnsiString;
     jObject : TJSONObject;
+    code : integer;
 begin
     token := asyncClient.ExtendArray( field, list );
-    log('MyRunner.ExtendArray: token = ' + token);
+    log('MyRunner.ExtendArray: entry: ' + token);
 
     line := asyncClient.WaitForResponse( token );
-    ExtendArray := handleResponse( line, ErrorMessage, jObject );
+    code := handleResponse( line, ErrorMessage, jObject );
+    log('MyRunner.ExtendArray: exit(' + IntToStr(code) + '): ' + token);
+
+    ExtendArray := code;
 end;
 
 
@@ -244,12 +252,16 @@ var
     token : string; 
     line : AnsiString;
     jObject : TJSONObject;
+    code : integer;
 begin
     token := asyncClient.RunPythonFunction( pythonFunction );
-    log('MyRunner.RunPythonFunction: token = ' + token);
+    log('MyRunner.RunPythonFunction: entry: ' + token);
 
     line := asyncClient.WaitForResponse( token );
-    RunPythonFunction := handleResponse( line, ErrorMessage, jObject );
+    code := handleResponse( line, ErrorMessage, jObject );
+    log('MyRunner.RunPythonFunction: exit(' + IntToStr(code) + '): ' + token);
+
+    RunPythonFunction := code;
 end;
 
 
@@ -268,7 +280,7 @@ var
 
 begin
     token := asyncClient.GetField( field );
-    log('MyRunner.GetResult: token = ' + token);
+    log('MyRunner.GetResult: entry: ' + token);
 
     line := asyncClient.WaitForResponse( token );
     code := handleResponse( line, ErrorMessage, jObject );
@@ -345,6 +357,7 @@ begin
         end;
     end;
 
+    log('MyRunner.GetResult: exit(' + IntToStr(code) + '): ' + token);
     GetResult := code;
 end;
 
@@ -353,12 +366,16 @@ var
     token : string;
     line : AnsiString;
     jObject : TJSONObject;
+    code : integer;
 begin
     token := asyncClient.Close;
-    log('MyRunner.Close: token = ' + token);
+    log('MyRunner.Close: entry: ' + token);
 
     line := asyncClient.WaitForResponse( token );
-    Close := handleResponse( line, ErrorMessage, jObject );
+    code := handleResponse( line, ErrorMessage, jObject );
+
+    log('MyRunner.Close: exit(' + IntToStr(code) + '): ' + token);
+    Close := code;
 end;
 
 end.

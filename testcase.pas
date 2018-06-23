@@ -14,15 +14,67 @@ type
         procedure log( lines: TStrings );
     public
         procedure simpleTest();
+        procedure standardTest();
         procedure performanceTest();
     end;
 
-implementation
+implementation 
 
 // *****************************************************************************
-// * Simple testcase, with error checking
+// * Simple Test.     !!! No error checking !!!
 // *****************************************************************************
 procedure MyTestCase.simpleTest();
+var
+    a : integer;
+    b : integer;
+    list : array of real;
+    iterations : integer;
+    size : integer;
+    count : integer;
+    total : real;
+    ErrorMessage : AnsiString;
+    functionName : string;
+
+begin
+    writeln('Startup' );
+    client := MyRunner.Create();
+    // client.attachLogger( self );
+
+    writeln('Create array' );
+    client.CreateArray('array', ErrorMessage);
+
+    iterations := 2;
+    for a := 0 to iterations - 1 do
+    begin
+        size := 1000;
+        SetLength(list, size);
+
+        for b := 0  to size - 1 do
+            list[b] := random();
+
+        writeln('(' + IntToStr(a) + '):  Add ' + IntToStr(size) + ' items to array' );
+        client.ExtendArray('array', list, ErrorMessage);
+    end;
+
+    functionName := 'foobar';
+    writeln('Run python function: ' + functionName);
+    client.RunPythonFunction( functionName, ErrorMessage );
+
+    writeln('Get result' );
+    client.GetResult('result', count, total, ErrorMessage);
+
+    writeln( 'Results:' );
+    writeln('     count = ' + IntToStr(count) );
+    writeln('     total = ' + FloatToStr(total) );
+
+    writeln('Close' );
+    client.Close( ErrorMessage );
+end;
+
+// *****************************************************************************
+// * Standard Test.   With error checking
+// *****************************************************************************
+procedure MyTestCase.standardTest();
 var
     a : integer;
     b : integer;
@@ -55,7 +107,7 @@ begin
 
     if rc = 0 then
     begin
-        iterations := 1;
+        iterations := 2;
         for a := 0 to iterations - 1 do
         begin
             size := 1000;
@@ -118,7 +170,7 @@ end;
 
 
 // *****************************************************************************
-// * Simple testcase, with error checking AND performance monitoring
+// * Performance Test.   With error checking AND performance monitoring
 // *****************************************************************************
 procedure MyTestCase.performanceTest();
 var
@@ -142,7 +194,7 @@ begin
     starttime := Now;
     client := MyRunner.Create();
     Writeln('milliseconds: ', MilliSecondsBetween(Now, starttime));
-    client.attachLogger( self );
+    // client.attachLogger( self );
 
     if rc = 0 then
     begin
@@ -158,7 +210,7 @@ begin
 
     if rc = 0 then
     begin
-        iterations := 1;
+        iterations := 1000;
         for a := 0 to iterations - 1 do
         begin
             size := 1000;

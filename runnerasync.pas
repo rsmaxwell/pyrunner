@@ -125,7 +125,11 @@ var
     responseItem : MyResponseItem;
 begin
     responseItem := response[ token ];
+
+    log( 'MyRunnerAsync.WaitForResponse: waiting for: ' + token );
     responseItem.semaphore.Wait();
+
+    log( 'MyRunnerAsync.WaitForResponse: continuing: ' + token );
     response.delete( token );
     WaitForResponse := responseItem.line;
     responseItem.Destroy();

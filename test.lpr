@@ -9,6 +9,6 @@ var
 
 begin
     test := MyTestCase.Create();
-    test.performanceTest();
+    test.simpleTest();
 end.
 
