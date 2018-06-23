@@ -12,13 +12,11 @@ type
     private
         stream: TStream;
         linebuffer: TStrings;
-        temp: TStrings;
         line: string;
         observers : TInterfaceList;
         operation: TMyRunnerOperation;
         semaphore: TSemaphore;
 
-        procedure ReadInternal;
         procedure Update();
         procedure notifyObservers();
     protected
@@ -45,17 +43,15 @@ begin
 end;
 
 procedure MyReader.Read(var buffer: TStrings);
-begin
-    ReadInternal;
-    buffer := temp;
-end;
-
-procedure MyReader.ReadInternal();
+var
+    temp: TStrings;
 begin
     semaphore.Wait();
     temp := linebuffer;
     linebuffer := TStringList.Create;
     semaphore.Post();
+
+    buffer := temp;
 end;
 
 procedure MyReader.Update();

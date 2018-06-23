@@ -22,13 +22,11 @@ type
         response : ResponseTreeMap;
 
         linebuffer: TStrings;
-        temp: TStrings;
         semaphore: TSemaphore;
 
         procedure WriteLn(line: AnsiString);
         function makeToken() : string;
         procedure log( line: AnsiString );
-        procedure ReadLogInternal();
         procedure notifyObservers();
 
     public
@@ -226,19 +224,16 @@ begin
 end;
 
 procedure MyRunnerAsync.ReadLog(var buffer: TStrings);
-begin
-    ReadLogInternal;
-    buffer := temp;
-end;
-
-procedure MyRunnerAsync.ReadLogInternal();
+var
+    temp: TStrings;
 begin
     semaphore.Wait();
     temp := linebuffer;
     linebuffer := TStringList.Create;
     semaphore.Post();
-end;
 
+    buffer := temp;
+end;
 
 procedure MyRunnerAsync.notifyObservers();
 var
