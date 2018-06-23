@@ -19,8 +19,8 @@ type
 
     public
         constructor Create;
-        procedure attachLogger( logger : IMyRunnerLogger );
-        procedure detachLogger( logger : IMyRunnerLogger );
+        procedure AttachLogger( logger : IMyRunnerLogger );
+        procedure DetachLogger( logger : IMyRunnerLogger );
 
         function CreateArray( field : AnsiString; var ErrorMessage : AnsiString ) : integer;
         function ExtendArray( field : AnsiString; list : array of real; var ErrorMessage : AnsiString ) : integer;
@@ -45,13 +45,13 @@ begin
     loggers := TInterfaceList.Create;
 end;
 
-procedure MyRunner.attachLogger( logger : IMyRunnerLogger );
+procedure MyRunner.AttachLogger( logger : IMyRunnerLogger );
 begin
     if loggers.IndexOf(logger) = -1 then
         loggers.Add(IUnknown(logger));
 end;
 
-procedure MyRunner.detachLogger( logger : IMyRunnerLogger );
+procedure MyRunner.DetachLogger( logger : IMyRunnerLogger );
 begin
     loggers.Remove(logger);
 end;

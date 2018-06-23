@@ -32,7 +32,7 @@ var
 
 begin
     client := MyRunner.Create();
-    // client.attachLogger( self );
+    // client.AttachLogger( self );
 
     client.CreateArray('array', ErrorMessage);
 
@@ -73,7 +73,7 @@ begin
 
     writeln('Startup' );
     client := MyRunner.Create();
-    client.attachLogger( self );
+    client.AttachLogger( self );
 
     if rc = 0 then
     begin
@@ -174,7 +174,7 @@ begin
     starttime := Now;
     client := MyRunner.Create();
     Writeln('milliseconds: ', MilliSecondsBetween(Now, starttime));
-    // client.attachLogger( self );
+    // client.AttachLogger( self );
 
     if rc = 0 then
     begin

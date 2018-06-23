@@ -28,7 +28,7 @@ Get [Lazarus](https://www.lazarus-ide.org), point it at [test.lpi](test.lpi) and
 
 ```pascal
     client := MyRunner.Create();
-    // client.attachLogger( self );
+    // client.AttachLogger( self );
 
     client.CreateArray('array', ErrorMessage);
 
@@ -54,7 +54,7 @@ Get [Lazarus](https://www.lazarus-ide.org), point it at [test.lpi](test.lpi) and
 
 Create must be called first to initialise the Runner system. A new process is started running python [server.py](server.py). [Reader](streamreader.pas) threads are attached to the process output streams
 
-## attachLogger( logger : [IMyRunnerLogger](runnerlogger.pas) );
+## AttachLogger( logger : [IMyRunnerLogger](runnerlogger.pas) );
 
 Specifies a class containing a callback where [Runner](runner.pas) will send log records including standard output from the python process
 
