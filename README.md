@@ -56,7 +56,9 @@ Create must be called first to initialise the Runner system. A new process is st
 
 ## AttachLogger( logger : [IMyRunnerLogger](runnerlogger.pas) );
 
-Specifies a class containing a callback where [Runner](runner.pas) will send log records including standard output from the python process
+Specifies a class containing a callback where [Runner](runner.pas) will send log records including standard output from the python process. 
+
+It is not an error if this call is omitted, in which case log data will not be written anywhere.
 
 ## CreateArray( field : AnsiString; var ErrorMessage : AnsiString ) : integer;
 
@@ -117,7 +119,7 @@ Returns:
 
 Cleans up resources used by the [Runner](runner.pas). 
 
-The python process is sent a __quit__ command to terminate it.
+The python process is sent a __quit__ command which will make it terminate.
 
 Returns:
   * '0' on success
