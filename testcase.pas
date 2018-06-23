@@ -25,49 +25,29 @@ implementation
 // *****************************************************************************
 procedure MyTestCase.simpleTest();
 var
-    a : integer;
-    b : integer;
     list : array of real;
-    iterations : integer;
-    size : integer;
     count : integer;
     total : real;
     ErrorMessage : AnsiString;
-    functionName : string;
 
 begin
-    writeln('Startup' );
     client := MyRunner.Create();
     // client.attachLogger( self );
 
-    writeln('Create array' );
     client.CreateArray('array', ErrorMessage);
 
-    iterations := 2;
-    for a := 0 to iterations - 1 do
-    begin
-        size := 1000;
-        SetLength(list, size);
+    SetLength(list, 2);
+    list[0] := 123.456;
+    list[1] := 456.789;
+    client.ExtendArray('array', list, ErrorMessage);
 
-        for b := 0  to size - 1 do
-            list[b] := random();
+    client.RunPythonFunction( 'foobar', ErrorMessage );
 
-        writeln('(' + IntToStr(a) + '):  Add ' + IntToStr(size) + ' items to array' );
-        client.ExtendArray('array', list, ErrorMessage);
-    end;
-
-    functionName := 'foobar';
-    writeln('Run python function: ' + functionName);
-    client.RunPythonFunction( functionName, ErrorMessage );
-
-    writeln('Get result' );
     client.GetResult('result', count, total, ErrorMessage);
-
     writeln( 'Results:' );
     writeln('     count = ' + IntToStr(count) );
     writeln('     total = ' + FloatToStr(total) );
 
-    writeln('Close' );
     client.Close( ErrorMessage );
 end;
 
