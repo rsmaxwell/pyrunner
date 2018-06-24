@@ -180,7 +180,7 @@ The implementation needs to convert the requests and responses from the pascal e
 
 ### Normal API call
 
-If the Python function takes a long time to complete,the user can choose to replace the synchronous API:
+If the Python function takes a long time to complete, the user can choose to replace the synchronous API:
 
 ```pascal
 rc := client.RunPythonFunction( functionName, ErrorMessage );
