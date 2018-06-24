@@ -188,7 +188,6 @@ If the Python function takes a long time to complete,the user can choose to repl
 
 ```pascal
         token := client.asyncClient.RunPythonFunction( functionName );
-        writeln('MyAsyncRunner.RunPythonFunction: entry: ' + token);
 ```
 Then do other stuff ...
 
