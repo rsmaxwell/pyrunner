@@ -186,7 +186,7 @@ If the Python function takes a long time to complete, the user can choose to rep
 rc := client.RunPythonFunction( functionName, ErrorMessage );
 ```
 
-... with the equivilant async API
+... with the equivalent asynchronous API:
 
 ```pascal
 token := client.asyncClient.RunPythonFunction( functionName );
@@ -210,7 +210,8 @@ Replace the synchronous API:
 ```pascal
 rc := client.GetResult(count, total, ErrorMessage);
 ```
-with the async API:
+
+... with the equivalent asynchronous API:
 
 ```pascal
 token := client.asyncClient.GetResult();
