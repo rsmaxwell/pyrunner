@@ -217,6 +217,8 @@ token := client.asyncClient.GetResult();
 ```
 ... do other stuff ...
 
+Then call __WaitForResponse__ and get the return parameters from __jObject__
+
 ```pascal
 rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
 if rc = 0 then
