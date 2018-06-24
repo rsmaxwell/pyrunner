@@ -127,3 +127,59 @@ Returns:
 
 
 
+# Internals
+
+## tokens
+
+The response from the reader thread attached to the python processes stderr output stream, needs to wake up the waiting API thread, which it does by posting the semaphore the API thread is waiting on.  
+
+Now although the way things are, with the python process single threaded and the synchronous API being used, and the user making API calls from a simgle thread, there can only ever be one waiting API call. 
+
+However:
+* An obvious performance improvement would be to have the python process offload requests to worker threads.
+
+* If API calls were made from a GUI, it would be importaint to avoid lengthy waits on synchronous API calls. An obvious perfromance improvement would be to use the underlying asynchronous API call (i.e  call [RunnerAsync](runnerasync.pas) directly)
+
+* Also in a GUI environmnet, it is likely that API calls would be made from multiple threads
+
+In these cases, we can no longer rely on there being a single waiter, so there needs to be a mechanism for the reader thread to post the correct semaphore.
+
+In this implementation, this mechanism is:
+* The API call:
+    * creates a unique __token__ string
+    * sends the API command plus the __token__ to python
+    * creates a [ResponseItem](responseitem.pas) containing a semaphore and space for a response from python
+    * adds the [ResponseItem](responseitem.pas) to a __map__ keyed on the __token__
+    * waits on the semaphore
+
+* The Python server 
+    * reads the __token__ from the input request
+    * writes the token in its response
+
+* The reader thread 
+    * gets the token from the response
+    * looks up the [ResponseItem](responseitem.pas) in the __map__  
+    * fills in the response string
+    * posts the semaphore to wake up the API call
+
+## JSON
+
+The implementation needs to convert the requests and responses from the pascal environmnet to character streams used by the input oand output streams of the python server process. This implementation uses [JSON](https://www.json.org/)
+
+# Advanced usage
+
+## Async API
+
+If the Python function takes a long time to complete,the user can choose to replace the 
+
+```pascal
+```
+
+
+
+
+
+
+
+
+
