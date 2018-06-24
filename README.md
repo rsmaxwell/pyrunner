@@ -162,6 +162,14 @@ In this implementation, this mechanism is:
     * fills in the response string
     * posts the semaphore to wake up the API call
 
+## Semaphores
+
+There are a couple of places where lists are updated and used on different threads. 
+* [Reader](streamreader.pas) adds lines to a list which is used by the API thread
+* The [MyRunnerAsync](runnerasync.pas) __log__  method adds lines to a list which is used by the logger callback 
+
+These lists are protected with their own [semaphores](semaphores.pas).
+
 ## JSON
 
 The implementation needs to convert the requests and responses from the pascal environmnet to character streams used by the input oand output streams of the python server process. This implementation uses [JSON](https://www.json.org/)
