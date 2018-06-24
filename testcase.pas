@@ -220,7 +220,7 @@ begin
 
         // Do other stuff here ...
 
-        // But make sure that eventually "WaitForResponse" is called, to clear the entry in the
+        // But make sure that eventually "WaitForResponse" is called, to clear the entry
         // in the "ResponseMap" ... (otherwise there will be a leak!)
         // "WaitForResponse" can be called on a different thread
 

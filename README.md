@@ -178,16 +178,27 @@ The implementation needs to convert the requests and responses from the pascal e
 
 ## Async API
 
-If the Python function takes a long time to complete,the user can choose to replace the 
+If the Python function takes a long time to complete,the user can choose to replace the synchronous API:
 
 ```pascal
+        rc := client.RunPythonFunction( functionName, ErrorMessage );
 ```
 
+... with the equivilant async API
 
+```pascal
+        token := client.asyncClient.RunPythonFunction( functionName );
+        writeln('MyAsyncRunner.RunPythonFunction: entry: ' + token);
+```
+Then do other stuff ...
 
+But make sure that eventually __WaitForResponse__ is called, to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!)
 
+__WaitForResponse__ can be called on a different thread
 
+```pascal
+        line := client.asyncClient.WaitForResponse( token );
+        rc := client.handleResponse( line, ErrorMessage, jObject );
+```
 
-
-
-
+Additional response values are available in the __jObject__  
