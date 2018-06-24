@@ -193,7 +193,7 @@ token := client.asyncClient.RunPythonFunction( functionName );
 ```
 Then do other stuff ...
 
-But make sure that eventually __WaitForResponse__ is eventually called (mabe on another thread), to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!). 
+But make sure that eventually __WaitForResponse__ is eventually called (maybe on another thread), to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!). 
 
 ```pascal
 rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
