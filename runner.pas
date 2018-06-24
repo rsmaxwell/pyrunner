@@ -10,14 +10,15 @@ uses
 type
     MyRunner = class(TInterfacedObject, IMyRunnerObserver)
     private
-        asyncClient: MyRunnerAsync; 
         loggers: TInterfaceList;
         procedure notify( operation: TMyRunnerOperation );
-        function handleResponse( line: AnsiString; var message : AnsiString; var jObject : TJSONObject ) : integer;
         procedure log( lines : TStrings );
         procedure log( line : AnsiString );
 
-    public
+    public 
+        asyncClient: MyRunnerAsync;
+        function handleResponse( line: AnsiString; var message : AnsiString; var jObject : TJSONObject ) : integer;
+
         constructor Create;
         procedure AttachLogger( logger : IMyRunnerLogger );
         procedure DetachLogger( logger : IMyRunnerLogger );

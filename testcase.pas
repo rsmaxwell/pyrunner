@@ -15,6 +15,7 @@ type
     public
         procedure simpleTest();
         procedure standardTest();
+        procedure asyncTest();
         procedure performanceTest();
     end;
 
@@ -145,6 +146,120 @@ begin
         writeln( ErrorMessage );
     end;
 end;
+
+
+// *****************************************************************************
+// * Standard Test.   With error checking
+// *****************************************************************************
+procedure MyTestCase.asyncTest();
+var
+    a : integer;
+    b : integer;
+    list : array of real;
+    iterations : integer;
+    size : integer;
+    count : integer;
+    total : real;
+    rc : integer;
+    rc2 : integer;
+    ErrorMessage : AnsiString;
+    functionName : string;
+
+    token : string;
+    line : AnsiString;
+    jObject : TJSONObject;
+
+begin
+    rc := 0;
+
+    writeln('Startup' );
+    client := MyRunner.Create();
+    client.AttachLogger( self );
+
+    if rc = 0 then
+    begin
+        writeln('Create array' );
+        rc := client.CreateArray('array', ErrorMessage);
+        if rc <> 0 then
+        begin
+            writeln( ErrorMessage );
+        end;
+    end;
+
+    if rc = 0 then
+    begin
+        iterations := 2;
+        for a := 0 to iterations - 1 do
+        begin
+            size := 1000;
+            SetLength(list, size);
+
+            for b := 0  to size - 1 do
+                list[b] := random();
+
+            if rc = 0 then
+            begin
+                writeln('(' + IntToStr(a) + '):  Add ' + IntToStr(size) + ' items to array' );
+                rc := client.ExtendArray('array', list, ErrorMessage);
+                if rc <> 0 then
+                begin
+                    writeln( ErrorMessage );
+                    Break;
+                end;
+            end;
+        end;
+    end;
+
+    if rc = 0 then
+    begin
+        functionName := 'foobar';
+        writeln('Run python function: ' + functionName);
+
+        token := client.asyncClient.RunPythonFunction( functionName );
+        writeln('MyAsyncRunner.RunPythonFunction: entry: ' + token);
+
+        // Do other stuff here ...
+
+        // But make sure that eventually "WaitForResponse" is called, to clear the entry in the
+        // in the "ResponseMap" ... (otherwise there will be a leak!)
+        // "WaitForResponse" can be called on a different thread
+
+        line := client.asyncClient.WaitForResponse( token );
+        rc := client.handleResponse( line, ErrorMessage, jObject );
+        writeln('MyAsyncRunner.RunPythonFunction: exit(' + IntToStr(rc) + '): ' + token);
+
+        if rc <> 0 then
+        begin
+            writeln( ErrorMessage );
+        end;
+    end;
+
+    if rc = 0 then
+    begin
+        writeln('Get result' );
+        rc := client.GetResult('result', count, total, ErrorMessage);
+        if rc <> 0 then
+        begin
+            writeln( ErrorMessage );
+        end;
+    end;
+
+    if rc = 0 then
+    begin
+       writeln( 'Results:' );
+       writeln('     count = ' + IntToStr(count) );
+       writeln('     total = ' + FloatToStr(total) );
+    end;
+
+    writeln('Close' );
+    rc2 := client.Close( ErrorMessage );
+    if rc2 <> 0 then
+    begin
+        rc := Max( rc, rc2);
+        writeln( ErrorMessage );
+    end;
+end;
+
 
 
 
