@@ -178,6 +178,8 @@ The implementation needs to convert the requests and responses from the pascal e
 
 ## Async API
 
+### Normal API call
+
 If the Python function takes a long time to complete,the user can choose to replace the synchronous API:
 
 ```pascal
@@ -196,6 +198,8 @@ But make sure that eventually __WaitForResponse__ is eventually called (mabe on 
 ```pascal
 rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
 ```
+
+### Api call with return parameters
 
 Some Api calls return additional values, which are available in  __jobject__. 
 
