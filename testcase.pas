@@ -74,7 +74,7 @@ begin
 
     writeln('Startup' );
     client := MyRunner.Create();
-    client.AttachLogger( self );
+    // client.AttachLogger( self );
 
     if rc = 0 then
     begin
@@ -149,7 +149,7 @@ end;
 
 
 // *****************************************************************************
-// * Standard Test.   With error checking
+// * Asynchronous API Test.
 // *****************************************************************************
 procedure MyTestCase.asyncTest();
 var
@@ -166,7 +166,6 @@ var
     functionName : string;
 
     token : string;
-    line : AnsiString;
     jObject : TJSONObject;
 
 begin
@@ -214,9 +213,8 @@ begin
     begin
         functionName := 'foobar';
         writeln('Run python function: ' + functionName);
-
         token := client.asyncClient.RunPythonFunction( functionName );
-        writeln('MyAsyncRunner.RunPythonFunction: entry: ' + token);
+        writeln('after MyAsyncRunner.RunPythonFunction: token: ' + token);
 
         // Do other stuff here ...
 
@@ -224,9 +222,9 @@ begin
         // in the "ResponseMap" ... (otherwise there will be a leak!)
         // "WaitForResponse" can be called on a different thread
 
-        line := client.asyncClient.WaitForResponse( token );
-        rc := client.handleResponse( line, ErrorMessage, jObject );
-        writeln('MyAsyncRunner.RunPythonFunction: exit(' + IntToStr(rc) + '): ' + token);
+        writeln('before MyAsyncRunner.WaitForResponse: token: ' + token);
+        rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
+        writeln('after MyAsyncRunner.WaitForResponse: code: ' + IntToStr(rc));
 
         if rc <> 0 then
         begin

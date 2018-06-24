@@ -37,7 +37,8 @@ type
         procedure detachObserver( observer : IMyRunnerObserver );
         
         procedure ReadLog(var buffer: TStrings);
-        function WaitForResponse( token : string ) : AnsiString;
+        function WaitForResponse( token : string; var message : AnsiString; var jObject : TJSONObject ) : integer;
+
         procedure postResponseItem( line: AnsiString );
 
         function CreateArray(field : AnsiString) : string;
@@ -45,6 +46,8 @@ type
         function RunPythonFunction( pythonFunction : AnsiString) : string;
         function GetField(field : AnsiString) : string; 
         function Close() : string;
+
+        function HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
     end;
 
 
@@ -118,9 +121,18 @@ begin
 end;
 
 
-function MyRunnerAsync.WaitForResponse( token : string ) : AnsiString;
+function MyRunnerAsync.WaitForResponse( token : string; var message : AnsiString; var jObject : TJSONObject ) : integer;
 var
+    line: AnsiString;
     responseItem : MyResponseItem;
+    jData : TJSONData;
+    jtype : TJSONtype;
+    jTypeString : string;
+    jStatus : TJSONString;
+    jMessage : TJSONString;
+    status : string;
+    code : integer;
+
 begin
     responseItem := response[ token ];
 
@@ -129,9 +141,86 @@ begin
 
     log( 'MyRunnerAsync.WaitForResponse: continuing: ' + token );
     response.delete( token );
-    WaitForResponse := responseItem.line;
+    line := responseItem.line;
     responseItem.Destroy();
+
+    try
+    begin
+        jData := GetJSON( line );
+        jtype := jData.JSONType();
+
+        if  jtype = TJSONType.jtObject then
+        begin
+            jObject := jData as TJSONObject;
+
+            jData := jObject.Find('status');
+            if jData = Nil then
+            begin
+                code := -1;
+                message := ' The "status" field is missing';
+            end
+            else
+            begin
+                jtype := jData.JSONType();
+                if  jtype = TJSONType.jtString then
+                begin
+                    jStatus := jData as TJSONString;
+                    status := jStatus.AsString;
+
+                    if (status = 'ok') then
+                        code := 0
+                    else if (status = 'error') then
+                        code := 1
+                    else
+                        code := 2
+                end
+                else
+                begin
+                    code := 3;
+                    jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                    message := 'Error: unexpected status type. jType = ' + jTypeString;
+                end;
+            end;
+
+            jData := jObject.Find('message');
+            if jData <> Nil then
+            begin
+                jtype := jData.JSONType();
+                if  jtype = TJSONType.jtString then
+                begin
+                    jMessage := jData as TJSONString;
+                    message := jMessage.AsString;
+                end
+                else
+                begin
+                    code := 3;
+                    jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                    message := 'Error: unexpected message type. jType = ' + jTypeString;
+                end;
+             end;
+
+
+        end
+        else
+        begin
+            code := 3;
+            message := 'Error: unexpected response. jType = ' + jTypeString;
+        end;
+    end;
+
+    Except
+        on E: Exception do
+        begin
+            code := 4;
+            message := 'Error: '+ E.ClassName + ': ' + E.Message;
+        end;
+    end;
+
+    WaitForResponse := code;
 end;
+
+
+
 
 
 
@@ -406,6 +495,99 @@ begin
 
     Close := token;
 end;
+
+
+// *****************************************************************************
+// * HandleResponse helpers
+// *****************************************************************************
+
+function MyRunnerAsync.HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
+var
+    token : string;
+    code : integer;
+    jData : TJSONData;
+    jResult : TJSONObject;
+    jtype : TJSONtype;
+    jTypeString : string;
+    jCount : TJSONIntegerNumber;
+    jTotal : TJSONFloatNumber;
+
+begin
+    log('MyRunnerAsync.GetResultResponse: entry');
+
+    jData := jObject.Find('result');
+    if jData = Nil then
+    begin
+        code := 1;
+        ErrorMessage := 'The "result" field is missing';
+    end
+    else
+    begin
+        jtype := jData.JSONType();
+        if  jtype = TJSONType.jtObject then
+            jResult := jData as TJSONObject
+        else
+        begin
+            code := 3;
+            jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+            ErrorMessage := 'Error: unexpected result type. jType = ' + jTypeString;
+        end;
+    end;
+
+    if code = 0 then
+    begin
+        jData := jResult.Find('count');
+        if jData = Nil then
+        begin
+            code := 1;
+            ErrorMessage := 'Error: The "result.count" field is missing';
+        end
+        else
+        begin
+            jtype := jData.JSONType();
+            if  jtype = TJSONType.jtNumber then
+            begin
+                jCount := jData as TJSONIntegerNumber;
+                count := jCount.AsInteger;
+            end
+            else
+            begin
+                code := 3;
+                jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                ErrorMessage := 'Error: Unexpected result.count type: jType = ' + jTypeString;
+            end;
+        end;
+    end;
+
+    if code = 0 then
+    begin
+        jData := jResult.Find('total');
+        if jData = Nil then
+        begin
+            code := 1;
+            ErrorMessage := 'Error: The "result.total" field is missing';
+        end
+        else
+        begin
+            jtype := jData.JSONType();
+            if  jtype = TJSONType.jtNumber then
+            begin
+                jTotal := jData as TJSONFloatNumber;
+                total := jTotal.AsFloat;
+            end
+            else
+            begin
+                code := 3;
+                jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+                ErrorMessage := 'Error: Unexpected result.total type: jType = ' + jTypeString;
+            end;
+        end;
+    end;
+
+    log('MyRunnerAsync.GetResultResponse: exit(' + IntToStr(code) + ')');
+    HandleResponseGetResult := code;
+end;
+
 
 
 end.

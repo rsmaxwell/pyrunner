@@ -191,13 +191,12 @@ If the Python function takes a long time to complete,the user can choose to repl
 ```
 Then do other stuff ...
 
-But make sure that eventually __WaitForResponse__ is called, to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!)
-
-__WaitForResponse__ can be called on a different thread
+But make sure that eventually __WaitForResponse__ is called, to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!). 
 
 ```pascal
-        line := client.asyncClient.WaitForResponse( token );
-        rc := client.handleResponse( line, ErrorMessage, jObject );
+        rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
 ```
+
+__WaitForResponse__ can be called on a different thread
 
 Additional response values are available in the __jObject__  
