@@ -201,7 +201,7 @@ rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
 
 ### Api call with return parameters
 
-Some Api calls return additional values, which are available in  __jobject__. 
+Some Api calls return additional values, which __WaitForResponse__ returns in  __jobject__. 
 
 For example: the __GetResults__ call:
 
