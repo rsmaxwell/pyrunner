@@ -44,7 +44,7 @@ type
         function CreateArray(field : AnsiString) : string;
         function ExtendArray( field : AnsiString; list : array of real ) : string;
         function RunPythonFunction( pythonFunction : AnsiString) : string;
-        function GetField(field : AnsiString) : string; 
+        function GetResult() : string;
         function Close() : string;
 
         function HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
@@ -442,7 +442,7 @@ begin
 end;
 
 
-function MyRunnerAsync.GetField( field : AnsiString ) : string;
+function MyRunnerAsync.GetResult() : string;
 var
     command : AnsiString;
     jObject : TJSONObject;
@@ -454,7 +454,7 @@ begin
     jObject.Add('command', 'get');
 
     jArray := TJSONArray.Create();
-    jArray.Add( field );
+    jArray.Add( 'result' );
     jObject.Add('arguments', jArray);
 
     token := makeToken();
@@ -463,8 +463,7 @@ begin
     WriteLn(command);
     response[ token ] := MyResponseItem.Create();
 
-
-    GetField := token;
+    GetResult := token;
 end;
 
 function MyRunnerAsync.Close(): string;

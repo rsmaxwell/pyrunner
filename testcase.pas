@@ -44,7 +44,7 @@ begin
 
     client.RunPythonFunction( 'foobar', ErrorMessage );
 
-    client.GetResult('result', count, total, ErrorMessage);
+    client.GetResult(count, total, ErrorMessage);
     writeln( 'Results:' );
     writeln('     count = ' + IntToStr(count) );
     writeln('     total = ' + FloatToStr(total) );
@@ -124,7 +124,7 @@ begin
     if rc = 0 then
     begin
         writeln('Get result' );
-        rc := client.GetResult('result', count, total, ErrorMessage);
+        rc := client.GetResult(count, total, ErrorMessage);
         if rc <> 0 then
         begin
             writeln( ErrorMessage );
@@ -235,7 +235,14 @@ begin
     if rc = 0 then
     begin
         writeln('Get result' );
-        rc := client.GetResult('result', count, total, ErrorMessage);
+        token := client.asyncClient.GetResult();
+
+        // Do other stuff here ...
+
+        rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
+        if rc = 0 then
+            rc := client.asyncClient.HandleResponseGetResult(jObject, count, total, ErrorMessage );
+
         if rc <> 0 then
         begin
             writeln( ErrorMessage );
@@ -344,7 +351,7 @@ begin
     begin
         writeln('Get result' );
         starttime := Now;
-        rc := client.GetResult('result', count, total, ErrorMessage);
+        rc := client.GetResult(count, total, ErrorMessage);
         Writeln('milliseconds: ', MilliSecondsBetween(Now, starttime));
         if rc <> 0 then
         begin

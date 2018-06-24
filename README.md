@@ -181,22 +181,44 @@ The implementation needs to convert the requests and responses from the pascal e
 If the Python function takes a long time to complete,the user can choose to replace the synchronous API:
 
 ```pascal
-        rc := client.RunPythonFunction( functionName, ErrorMessage );
+rc := client.RunPythonFunction( functionName, ErrorMessage );
 ```
 
 ... with the equivilant async API
 
 ```pascal
-        token := client.asyncClient.RunPythonFunction( functionName );
+token := client.asyncClient.RunPythonFunction( functionName );
 ```
 Then do other stuff ...
 
-But make sure that eventually __WaitForResponse__ is called, to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!). 
+But make sure that eventually __WaitForResponse__ is eventually called (mabe on another thread), to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!). 
 
 ```pascal
-        rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
+rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
 ```
 
-__WaitForResponse__ can be called on a different thread
+Some Api calls return additional values, which are available in  __jobject__. 
 
-Additional response values are available in the __jObject__  
+For example: the __GetResults__ call:
+
+Replace the synchronous API:
+
+```pascal
+rc := client.GetResult(count, total, ErrorMessage);
+```
+with the async API:
+
+```pascal
+token := client.asyncClient.GetResult();
+```
+... do other stuff ...
+
+```pascal
+rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
+if rc = 0 then
+   rc := client.asyncClient.HandleResponseGetResult(jObject, count, total, ErrorMessage );
+```
+
+
+
+
