@@ -168,11 +168,11 @@ In this implementation, this mechanism is:
 Each command sent by the pascal [Runner](runner.pas) to the python process is a [JSON](https://www.json.org/) string containing a __command__ field, an __arguments__ array and a __token__ field. The __command__ field is one of the following:
 
 * run
-  * argument[0] is a string which will be executed with __exec()__
+  * argument[0] is a string to be executed with __exec()__
 * get
-  * argument[0] is the name of a __field__ which will be returned 
+  * argument[0] is the name of a __field__ to be returned 
 * quit
-  * sends an __ok__ response, then calls __sys.exit()__
+  * requests that the python server terminates
 
 
 ## Responses
