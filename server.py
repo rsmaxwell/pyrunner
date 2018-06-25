@@ -7,7 +7,7 @@ import time
 import binascii
 
 
-data = json.loads('{}')
+data = {}
 
 
 def okResponse():
@@ -54,7 +54,7 @@ def quit( *args ):
 def run( *args ):
     print("Run")
 
-    arguments = json.loads('[]')
+    arguments = []
     if 'arguments' in parsed_json:
         arguments = parsed_json['arguments']
 
