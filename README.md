@@ -160,6 +160,31 @@ In this implementation, this mechanism is:
     * fills in the response string
     * posts the semaphore to wake up the API call
 
+
+## Commands
+
+[JSON](https://www.json.org/) is used to convert the requests and responses between the pascal environment and the character streams used by the input and output streams of the python server process.
+
+Each command sent by the pascal [Runner](runner.pas) to the python process is a [JSON](https://www.json.org/) string containing a __command__ field, an __arguments__ array and a __token__ field. The __command__ field is one of the following:
+
+* run
+  * argument[0] is a string which will be executed with __exec()__
+* get
+  * argument[0] is the name of a __field__ which will be returned 
+* quit
+  * sends an __ok__ response, then calls __sys.exit()__
+
+
+## Responses
+
+Each response sent by the python process back to the pascal [Runner](runner.pas) is a [JSON](https://www.json.org/) string containing a __status__ field, and a __token__ field. The __status__ field is one of the following:
+
+* ok
+  * The command was processed successfully. The response may contain additional return values.
+* error
+  * The response also contains a __ErrorMessage__ field describing the problem
+
+
 ## Semaphores
 
 There are a couple of places where lists are updated and used on different threads. 
@@ -168,9 +193,6 @@ There are a couple of places where lists are updated and used on different threa
 
 These lists are protected with their own [semaphores](semaphores.pas).
 
-## JSON
-
-The implementation needs to convert the requests and responses from the pascal environment to character streams used by the input and output streams of the python server process. This implementation uses [JSON](https://www.json.org/)
 
 # Advanced usage
 
