@@ -1,6 +1,6 @@
 # pyrunner
 
-This pascal project provides an API to calls into a runing python program to set state, run functions and retrieve results.
+This pascal project provides an API to calls into a running python program to set state, run functions and retrieve results.
 
 ![pyrunner](images/pyrunner.png "pyrunner")
 
@@ -136,7 +136,7 @@ The response from the reader thread attached to the python processes stderr outp
 However:
 * An obvious performance improvement would be to have the python process offload requests to worker threads.
 
-* If API calls were made from a GUI, it would be importaint to avoid lengthy waits on synchronous API calls. An obvious perfromance improvement would be to use the underlying asynchronous API call (i.e  call [RunnerAsync](runnerasync.pas) directly)
+* If API calls were made from a GUI, it would be important to avoid lengthy waits on synchronous API calls. An obvious perfromance improvement would be to use the underlying asynchronous API call (i.e  call [RunnerAsync](runnerasync.pas) directly)
 
 * Also in a GUI environment, it is likely that API calls would be made from multiple threads
 
