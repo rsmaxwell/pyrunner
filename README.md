@@ -170,7 +170,7 @@ These lists are protected with their own [semaphores](semaphores.pas).
 
 ## JSON
 
-The implementation needs to convert the requests and responses from the pascal environmnet to character streams used by the input oand output streams of the python server process. This implementation uses [JSON](https://www.json.org/)
+The implementation needs to convert the requests and responses from the pascal environment to character streams used by the input and output streams of the python server process. This implementation uses [JSON](https://www.json.org/)
 
 # Advanced usage
 
