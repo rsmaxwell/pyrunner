@@ -133,7 +133,7 @@ Returns:
 
 The response from the reader thread attached to the python processes stderr output stream, needs to wake up the waiting API thread, which it does by posting the semaphore the API thread is waiting on.  
 
-Now although the way things are, there can only ever be one waiting API call, so there is no problem deciding which semaphore to post.
+The way things are, there can only ever be one waiting API call, so there is no problem deciding which semaphore to post.
 
 However:
 * An obvious performance improvement would be to have the python process offload requests to worker threads.
