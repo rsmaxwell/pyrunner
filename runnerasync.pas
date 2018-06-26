@@ -5,8 +5,11 @@ unit RunnerAsync;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, typinfo, StreamReader, RunnerInterfaces, ResponseItem, gmap, gutil, Semaphores;
+  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, typinfo, strutils, StreamReader,
+  RunnerInterfaces, ResponseItem, gmap, gutil, Semaphores, RunnerException;
 
+const
+  BUF_SIZE = 2048; // Buffer size for reading the output in chunks
 
 type
     CompareStrings = specialize TLess<AnsiString>;
@@ -37,17 +40,17 @@ type
         procedure detachObserver( observer : IMyRunnerObserver );
         
         procedure ReadLog(var buffer: TStrings);
-        function WaitForResponse( token : string; var message : AnsiString; var jObject : TJSONObject ) : integer;
+        function WaitForResponse( token : string ) : TJSONObject;
 
         procedure postResponseItem( line: AnsiString );
 
-        function CreateArray(field : AnsiString) : string;
-        function ExtendArray( field : AnsiString; list : array of real ) : string;
-        function RunPythonFunction( pythonFunction : AnsiString) : string;
+        function CreateArray(field : string) : string;
+        function ExtendArray( field : string; list : array of real ) : string;
+        function RunPythonFunction( pythonFunction : string) : string;
         function GetResult() : string;
         function Close() : string;
 
-        function HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
+        procedure HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real);
     end;
 
 
@@ -65,14 +68,96 @@ const
 // *****************************************************************************
 
 constructor MyRunnerAsync.Create();
+var                       
+    pythonProgramName : string;
+    launcherProgramName : string;
+    programName : string;
+    programPath : string;
+    BytesRead : integer;
+    OutputStream : TMemoryStream;
+    Buffer : array[1..BUF_SIZE] of byte;
+    Result : AnsiString;
+    pythonVersion : integer;
+    i : integer;
+    params : TStrings;
+    param : AnsiString;
+    command : string;
 begin
+
+    // *************************************************************************
+    // * Find the python program path
+    // *************************************************************************
+    pythonProgramName := 'python.exe';
+    launcherProgramName := 'py.exe';
+
+    params := TStringList.Create;
+    params.Add('-2');
+    params.Add('--version');
+
+    programName := pythonProgramName;
+    programPath := FindDefaultExecutablePath(programName);
+    if length(programPath) = 0 then
+    begin
+        programName := launcherProgramName;
+        programPath := FindDefaultExecutablePath(programName);
+        if length(programPath) = 0 then
+            raise MyRunnerException.Create('Could not find ' + pythonProgramName + ' or ' + launcherProgramName + ' on the PATH');
+    end;
+
+    // *************************************************************************
+    // * Find the version of python
+    // *************************************************************************
+//    proc := TProcess.Create(nil);
+//    proc.Executable:= programPath;
+//
+//    for i := 0 to params.count - 1 do
+//    begin
+//        param := params[i];
+//        proc.Parameters.Add(param);
+//    end;
+//
+//    proc.Options := proc.Options + [poUsePipes, poNewConsole];
+//    proc.Execute;
+//
+//    Result := '';
+//    OutputStream := TMemoryStream.Create;
+//    repeat
+//      BytesRead := proc.Output.Read(Buffer, BUF_SIZE);
+//      OutputStream.Write(Buffer, BytesRead)
+//    until BytesRead = 0;  // Stop if no more data is available
+//
+//   proc.Free;
+//
+//    SetString(Result, PAnsiChar(OutputStream.Memory), OutputStream.Size);
+//    Result := Trim(Result);
+//
+//    if not AnsiStartsStr('Python ', Result) then
+//    begin
+//        command := ProgramName;
+//        for i := 0 to params.Count - 1 do
+//            command := command + ' ' + params[i];
+//
+//        raise MyRunnerException.Create('Unexpected output from "' + command + ' : result: ' + Result);
+//    end;
+//
+//    pythonVersion := 0;
+//    if AnsiContainsStr(Result, '2.') then
+//         pythonVersion := 2
+//    else if AnsiContainsStr(Result, '3.') then
+//         pythonVersion := 3
+//    else
+//        raise MyRunnerException.Create('Unexpected python version from "' + ProgramName + ' --version" : ' + Result);
+
+    // *************************************************************************
+    // * Launch the python server
+    // *************************************************************************
     observers := TInterfaceList.Create;
     response := ResponseTreeMap.create;
     linebuffer := TStringList.Create;
     semaphore := TSemaphore.Create(1);
 
     proc := TProcess.Create(nil);
-    proc.Executable:= FindDefaultExecutablePath('python.exe');
+    proc.Executable:= programPath;
     proc.Parameters.Add('server.py');
     proc.Options := proc.Options + [poUsePipes, poNoConsole];
     proc.Execute;
@@ -121,17 +206,18 @@ begin
 end;
 
 
-function MyRunnerAsync.WaitForResponse( token : string; var message : AnsiString; var jObject : TJSONObject ) : integer;
+function MyRunnerAsync.WaitForResponse( token : string ) : TJSONObject;
 var
     line: AnsiString;
     responseItem : MyResponseItem;
+    jObject : TJSONObject;
     jData : TJSONData;
     jtype : TJSONtype;
     jTypeString : string;
     jStatus : TJSONString;
     jMessage : TJSONString;
     status : string;
-    code : integer;
+    message : AnsiString;
 
 begin
     responseItem := response[ token ];
@@ -144,79 +230,52 @@ begin
     line := responseItem.line;
     responseItem.Destroy();
 
-    try
+    jData := GetJSON( line );
+    jtype := jData.JSONType();
+
+    if jtype <> TJSONType.jtObject then
     begin
-        jData := GetJSON( line );
+        jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+        raise MyRunnerException.Create('Error: unexpected response. jType = ' + jTypeString);
+    end;
+
+    jObject := jData as TJSONObject;
+    jData := jObject.Find('status');
+    if jData = Nil then
+        raise MyRunnerException.Create('The "status" field is missing');
+
+
+    jtype := jData.JSONType();
+    if jtype <> TJSONType.jtString then
+    begin
+        jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+        raise MyRunnerException.Create('Error: unexpected status type. jType = ' + jTypeString);
+    end;
+
+    jStatus := jData as TJSONString;
+    status := jStatus.AsString;
+
+    jData := jObject.Find('message');
+    if jData <> Nil then
+    begin
         jtype := jData.JSONType();
-
-        if  jtype = TJSONType.jtObject then
+        if  jtype <> TJSONType.jtString then
         begin
-            jObject := jData as TJSONObject;
+            jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+            raise MyRunnerException.Create('Error: unexpected message type. jType = ' + jTypeString);
+        end;
 
-            jData := jObject.Find('status');
-            if jData = Nil then
-            begin
-                code := -1;
-                message := ' The "status" field is missing';
-            end
-            else
-            begin
-                jtype := jData.JSONType();
-                if  jtype = TJSONType.jtString then
-                begin
-                    jStatus := jData as TJSONString;
-                    status := jStatus.AsString;
+        jMessage := jData as TJSONString;
+        message := jMessage.AsString;
+    end;
 
-                    if (status = 'ok') then
-                        code := 0
-                    else if (status = 'error') then
-                        code := 1
-                    else
-                        code := 2
-                end
-                else
-                begin
-                    code := 3;
-                    jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-                    message := 'Error: unexpected status type. jType = ' + jTypeString;
-                end;
-            end;
-
-            jData := jObject.Find('message');
-            if jData <> Nil then
-            begin
-                jtype := jData.JSONType();
-                if  jtype = TJSONType.jtString then
-                begin
-                    jMessage := jData as TJSONString;
-                    message := jMessage.AsString;
-                end
-                else
-                begin
-                    code := 3;
-                    jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-                    message := 'Error: unexpected message type. jType = ' + jTypeString;
-                end;
-             end;
-
-
-        end
+    if status <> 'ok' then
+        if length(message) > 0 then
+            raise MyRunnerException.Create( status + ': ' + message )
         else
-        begin
-            code := 3;
-            message := 'Error: unexpected response. jType = ' + jTypeString;
-        end;
-    end;
+            raise MyRunnerException.Create( status + ': unexpected error' );
 
-    Except
-        on E: Exception do
-        begin
-            code := 4;
-            message := 'Error: '+ E.ClassName + ': ' + E.Message;
-        end;
-    end;
-
-    WaitForResponse := code;
+    WaitForResponse := jObject;
 end;
 
 
@@ -340,7 +399,7 @@ end;
 // *****************************************************************************
 // * Helpers
 // *****************************************************************************
-function MyRunnerAsync.CreateArray( field : AnsiString ) : string;
+function MyRunnerAsync.CreateArray( field : string ) : string;
 var
     python : AnsiString;
     command : AnsiString;
@@ -369,7 +428,7 @@ begin
     CreateArray := token
 end;
 
-function MyRunnerAsync.ExtendArray( field : AnsiString; list : array of real ) : string;
+function MyRunnerAsync.ExtendArray( field : string; list : array of real ) : string;
 var
     python : AnsiString;
     command : AnsiString;
@@ -411,7 +470,7 @@ begin
 end;
 
 
-function MyRunnerAsync.RunPythonFunction( pythonFunction : AnsiString) : string;
+function MyRunnerAsync.RunPythonFunction( pythonFunction : string) : string;
 var
     python : AnsiString;
     command : AnsiString;
@@ -500,10 +559,8 @@ end;
 // * HandleResponse helpers
 // *****************************************************************************
 
-function MyRunnerAsync.HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
+procedure MyRunnerAsync.HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real );
 var
-    token : string;
-    code : integer;
     jData : TJSONData;
     jResult : TJSONObject;
     jtype : TJSONtype;
@@ -516,10 +573,7 @@ begin
 
     jData := jObject.Find('result');
     if jData = Nil then
-    begin
-        code := 1;
-        ErrorMessage := 'The "result" field is missing';
-    end
+        raise MyRunnerException.Create('The "result" field is missing')
     else
     begin
         jtype := jData.JSONType();
@@ -527,20 +581,13 @@ begin
             jResult := jData as TJSONObject
         else
         begin
-            code := 3;
             jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-            ErrorMessage := 'Error: unexpected result type. jType = ' + jTypeString;
+            raise MyRunnerException.Create('Error: unexpected result type. jType = ' + jTypeString);
         end;
-    end;
 
-    if code = 0 then
-    begin
         jData := jResult.Find('count');
         if jData = Nil then
-        begin
-            code := 1;
-            ErrorMessage := 'Error: The "result.count" field is missing';
-        end
+            raise MyRunnerException.Create('Error: The "result.count" field is missing')
         else
         begin
             jtype := jData.JSONType();
@@ -551,21 +598,14 @@ begin
             end
             else
             begin
-                code := 3;
                 jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-                ErrorMessage := 'Error: Unexpected result.count type: jType = ' + jTypeString;
+                raise MyRunnerException.Create('Error: Unexpected result.count type: jType = ' + jTypeString);
             end;
         end;
-    end;
 
-    if code = 0 then
-    begin
         jData := jResult.Find('total');
         if jData = Nil then
-        begin
-            code := 1;
-            ErrorMessage := 'Error: The "result.total" field is missing';
-        end
+            raise MyRunnerException.Create('Error: The "result.total" field is missing')
         else
         begin
             jtype := jData.JSONType();
@@ -576,15 +616,13 @@ begin
             end
             else
             begin
-                code := 3;
                 jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-                ErrorMessage := 'Error: Unexpected result.total type: jType = ' + jTypeString;
+                raise MyRunnerException.Create('Error: Unexpected result.total type: jType = ' + jTypeString);
             end;
         end;
     end;
 
-    log('MyRunnerAsync.GetResultResponse: exit(' + IntToStr(code) + ')');
-    HandleResponseGetResult := code;
+    log('MyRunnerAsync.GetResultResponse: exit');
 end;
 
 

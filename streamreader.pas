@@ -72,9 +72,8 @@ begin
         AssignStream(f, stream);
         Reset(f);
         while not EOF(f) do begin
-          ReadLn(f, line);
-
-          Update;
+            ReadLn(f, line);
+            Update;
         end;
     end;
 end; 

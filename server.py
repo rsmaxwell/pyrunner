@@ -68,7 +68,7 @@ def run( *args ):
         exec( python )
         okResponse()
     except Exception as e:
-        errorResponse("Caught exception: " + str(e))
+        errorResponse(str(e))
         print( sys.exc_info()[0] )
 
 
@@ -102,13 +102,19 @@ def get( *args ):
 
 
 
+if sys.version_info[0] >= 3:
+    get_input = input
+else:
+    get_input = raw_input
+
+
 commands = {'quit': 'quit()', 'run': 'run()', 'get': 'get()'}
 
 while True:
 
     token = "?????"
 
-    json_string = input()
+    json_string = get_input()
     debug = (json_string[:100] + '...') if len(json_string) > 100 else json_string
     print('input = ', debug)
 
@@ -150,7 +156,7 @@ while True:
         eval( command )
 
     except Exception as e:
-        errorResponse("Caught exception: " + str(e))
+        errorResponse(str(e))
         print("Caught exception: " + str(e))
         print( sys.exc_info()[0] )
         print(json.dumps(parsed_json, sort_keys=True, indent=4, separators=(',', ': ')))

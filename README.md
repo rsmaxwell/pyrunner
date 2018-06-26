@@ -20,7 +20,7 @@ When the reader threads read from the python output streams, it wakes up the blo
 
 This project currently only works on Windows
 
-Make sure [python3](https://www.python.org/downloads/) is available on the system path.
+Make sure either [python2 or python](https://www.python.org/downloads/) is available on the system path.
 
 Get [Lazarus](https://www.lazarus-ide.org), point it at [test.lpi](test.lpi) and select Run or F9 
 
@@ -30,21 +30,21 @@ Get [Lazarus](https://www.lazarus-ide.org), point it at [test.lpi](test.lpi) and
     client := MyRunner.Create();
     // client.AttachLogger( self );
 
-    client.CreateArray('array', ErrorMessage);
+    client.CreateArray('array');
 
     SetLength(list, 2);
     list[0] := 123.456;
     list[1] := 456.789;
-    client.ExtendArray('array', list, ErrorMessage);
+    client.ExtendArray('array', list);
 
-    client.RunPythonFunction( 'foobar', ErrorMessage );
+    client.RunPythonFunction('foobar');
 
-    client.GetResult('result', count, total, ErrorMessage);
+    client.GetResult('result', count, total);
     writeln( 'Results:' );
     writeln('     count = ' + IntToStr(count) );
     writeln('     total = ' + FloatToStr(total) );
 
-    client.Close( ErrorMessage );
+    client.Close();
 ```
 
 
@@ -60,7 +60,7 @@ Specifies a class containing a callback where [Runner](runner.pas) will send log
 
 It is not an error if this call is omitted, in which case log data will not be written anywhere.
 
-## CreateArray( field : AnsiString; var ErrorMessage : AnsiString ) : integer;
+## CreateArray( field : AnsiString);
 
 Creates an empty array of the given name as a field of __data__ in the python process. 
 
@@ -70,12 +70,10 @@ For example if the __field__ name was __array__ the following command would be r
 data["array"] = []
 ```
 
-Returns:
-  * '0' on success.
-  * 'non-zero' on failure and __ErrorMessage__ will be set to describe the problem. 
+Raises a MyRunnerException if there was a problem
 
 
-## ExtendArray( field : AnsiString; list : array of real; var ErrorMessage : AnsiString ) : integer;
+## ExtendArray( field : AnsiString; list : array of real);
 
 Adds a list of numbers to an array in the python process. 
 
@@ -85,12 +83,10 @@ For example if the __field__ name was __array__ and the list contained __123.456
 data["array"].extend( (123.456, 456.789) )
 ```
 
-Returns:
-  * '0' on success.
-  * 'non-zero' on failure and __ErrorMessage__ will be set to describe the problem. 
+Raises a MyRunnerException if there was a problem 
 
 
-## RunPythonFunction( pythonFunction : AnsiString) : string;
+## RunPythonFunction( pythonFunction : AnsiString);
 
 Runs the named function in the python process. 
 
@@ -100,30 +96,24 @@ For example if the __pythonFunction__ name was __foobar__ the following command 
 foobar()
 ```
 
-Returns:
-  * '0' on success.
-  * 'non-zero' on failure and __ErrorMessage__ will be set to describe the problem. 
+Raises a MyRunnerException if there was a problem 
 
 
-## GetResult(field : AnsiString; var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
+## GetResult(field : AnsiString; var count : integer; var total : real);
 
 Gets __result__ field from the map __data__ from the python process, and extracts the integer __count__ and the float __total__
 
 
-Returns:
-  * '0' on success and __count__ and __total__ will be set 
-  * 'non-zero' on failure and __ErrorMessage__ will be set to describe the problem. 
+Raises a MyRunnerException if there was a problem 
 
 
-## Close( var ErrorMessage : AnsiString ) : integer;
+## Close();
 
 Cleans up resources used by the [Runner](runner.pas). 
 
 The python process is sent a __quit__ command which will make it terminate.
 
-Returns:
-  * '0' on success
-  * 'non-zero' on failure and __ErrorMessage__ will be set to describe the problem. 
+ 
 
 
 
@@ -216,7 +206,7 @@ Then do other stuff ...
 But make sure that eventually __WaitForResponse__ is eventually called (maybe on another thread), to clear the entry in the __ResponseMap__ ... (otherwise there will be a leak!). 
 
 ```pascal
-rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
+client.asyncClient.WaitForResponse(token);
 ```
 
 ### Api call with return parameters
@@ -228,7 +218,7 @@ For example: the __GetResults__ call:
 Replace the synchronous API:
 
 ```pascal
-rc := client.GetResult(count, total, ErrorMessage);
+client.GetResult(count, total);
 ```
 
 ... with the equivalent asynchronous API:
@@ -241,9 +231,8 @@ token := client.asyncClient.GetResult();
 Then call __WaitForResponse__ and get the return parameters from __jObject__
 
 ```pascal
-rc := client.asyncClient.WaitForResponse( token, ErrorMessage, jObject );
-if rc = 0 then
-   rc := client.asyncClient.HandleResponseGetResult(jObject, count, total, ErrorMessage );
+jObject := client.asyncClient.WaitForResponse( token );
+client.asyncClient.HandleResponseGetResult( jObject, count, total );
 ```
 
 

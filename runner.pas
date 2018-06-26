@@ -22,11 +22,11 @@ type
         procedure AttachLogger( logger : IMyRunnerLogger );
         procedure DetachLogger( logger : IMyRunnerLogger );
 
-        function CreateArray( field : AnsiString; var ErrorMessage : AnsiString ) : integer;
-        function ExtendArray( field : AnsiString; list : array of real; var ErrorMessage : AnsiString ) : integer;
-        function RunPythonFunction( pythonFunction : AnsiString; var ErrorMessage : AnsiString ) : integer;
-        function GetResult(var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
-        function Close(var ErrorMessage : AnsiString ) : integer;
+        procedure CreateArray( field : string);
+        procedure ExtendArray( field : string; list : array of real );
+        procedure RunPythonFunction( pythonFunction : string );
+        procedure GetResult(var count : integer; var total : real );
+        procedure Close();
     end;
 
 
@@ -124,39 +124,36 @@ end;
 // *****************************************************************************
 //* Helpers
 // *****************************************************************************
-function MyRunner.CreateArray( field : AnsiString; var ErrorMessage : AnsiString ) : integer;
+procedure MyRunner.CreateArray( field : string );
 var
     token : string;
     jObject : TJSONObject; 
     code : integer;
+    ErrorMessage : AnsiString;
+
 begin
     token := asyncClient.CreateArray( field );
-    log('MyRunner.CreateArray: entry: ' + token);
+    log('MyRunner.CreateArray: token: ' + token);
 
-    code := asyncClient.WaitForResponse( token, ErrorMessage, jObject );
-    log('MyRunner.CreateArray: exit(' + IntToStr(code) + '): ' + token);
-
-    CreateArray := code;
+    asyncClient.WaitForResponse( token );
+    log('MyRunner.CreateArray: exit');
 end;
 
 
-function MyRunner.ExtendArray( field : AnsiString; list : array of real; var ErrorMessage : AnsiString ) : integer;
+procedure MyRunner.ExtendArray( field : string; list : array of real );
 var
     token : string;
     jObject : TJSONObject;
-    code : integer;
 begin
     token := asyncClient.ExtendArray( field, list );
     log('MyRunner.ExtendArray: token: ' + token);
 
-    code := asyncClient.WaitForResponse( token, ErrorMessage, jObject );
-    log('MyRunner.ExtendArray: code: ' + IntToStr(code));
-
-    ExtendArray := code;
+    asyncClient.WaitForResponse( token );
+    log('MyRunner.ExtendArray: exit');
 end;
 
 
-function MyRunner.RunPythonFunction( pythonFunction : AnsiString; var ErrorMessage : AnsiString ) : integer;
+procedure MyRunner.RunPythonFunction( pythonFunction : string );
 var
     token : string;
     jObject : TJSONObject;
@@ -165,49 +162,39 @@ begin
     token := asyncClient.RunPythonFunction( pythonFunction );
     log('MyRunner.RunPythonFunction: token: ' + token);
 
-    code := asyncClient.WaitForResponse( token, ErrorMessage, jObject );
-    log('MyRunner.RunPythonFunction: code: ' + IntToStr(code));
-
-    RunPythonFunction := code;
+    asyncClient.WaitForResponse( token );
+    log('MyRunner.RunPythonFunction: exit' );
 end;
 
 
-function MyRunner.GetResult(var count : integer; var total : real; var ErrorMessage : AnsiString ) : integer;
+procedure MyRunner.GetResult(var count : integer; var total : real );
 var
     token : string;
     jObject : TJSONObject;
-    code : integer;
 
 begin
     token := asyncClient.GetResult();
     log('MyRunner.GetResult: token: ' + token);
 
-    code := asyncClient.WaitForResponse( token, ErrorMessage, jObject );
-
-    if code = 0 then
-        code := asyncClient.HandleResponseGetResult(jObject, count, total, ErrorMessage );
-
-
-    log('MyRunner.GetResult: code: ' + IntToStr(code));
-    GetResult := code;
+    jObject := asyncClient.WaitForResponse( token );
+    asyncClient.HandleResponseGetResult(jObject, count, total);
+    log('MyRunner.GetResult: exit');
 end;
 
 
 
 
-function MyRunner.Close( var ErrorMessage : AnsiString ) : integer;
+procedure MyRunner.Close();
 var
     token : string;
     jObject : TJSONObject;
-    code : integer;
+
 begin
     token := asyncClient.Close;
     log('MyRunner.Close: token: ' + token);
 
-    code := asyncClient.WaitForResponse( token, ErrorMessage, jObject );
-
-    log('MyRunner.Close: code: ' + IntToStr(code));
-    Close := code;
+    asyncClient.WaitForResponse( token );
+    log('MyRunner.Close: exit');
 end;
 
 end.
