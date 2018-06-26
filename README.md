@@ -18,9 +18,9 @@ When the reader threads read from the python output streams, it wakes up the blo
 
 # Getting Started
 
-This project currently only works on Windows
+This project currently only works on Windows and python3
 
-Make sure either [python2 or python](https://www.python.org/downloads/) is available on the system path.
+Make sure [python3](https://www.python.org/downloads/) is available on the system path.
 
 Get [Lazarus](https://www.lazarus-ide.org), point it at [test.lpi](test.lpi) and select Run or F9 
 
