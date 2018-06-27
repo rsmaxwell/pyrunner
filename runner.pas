@@ -127,9 +127,6 @@ end;
 procedure MyRunner.CreateArray( field : string );
 var
     token : string;
-    jObject : TJSONObject; 
-    code : integer;
-    ErrorMessage : AnsiString;
 
 begin
     token := asyncClient.CreateArray( field );
@@ -143,7 +140,6 @@ end;
 procedure MyRunner.ExtendArray( field : string; list : array of real );
 var
     token : string;
-    jObject : TJSONObject;
 begin
     token := asyncClient.ExtendArray( field, list );
     log('MyRunner.ExtendArray: token: ' + token);
@@ -156,8 +152,6 @@ end;
 procedure MyRunner.RunPythonFunction( pythonFunction : string );
 var
     token : string;
-    jObject : TJSONObject;
-    code : integer;
 begin
     token := asyncClient.RunPythonFunction( pythonFunction );
     log('MyRunner.RunPythonFunction: token: ' + token);
@@ -187,7 +181,6 @@ end;
 procedure MyRunner.Close();
 var
     token : string;
-    jObject : TJSONObject;
 
 begin
     token := asyncClient.Close;

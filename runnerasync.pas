@@ -5,7 +5,7 @@ unit RunnerAsync;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, typinfo, strutils, StreamReader,
+  Classes, SysUtils, FileUtil, Process, fpjson, jsonparser, typinfo, StreamReader,
   RunnerInterfaces, ResponseItem, gmap, gutil, Semaphores, RunnerException;
 
 const
@@ -73,26 +73,13 @@ var
     launcherProgramName : string;
     programName : string;
     programPath : string;
-    BytesRead : integer;
-    OutputStream : TMemoryStream;
-    Buffer : array[1..BUF_SIZE] of byte;
-    Result : AnsiString;
-    pythonVersion : integer;
-    i : integer;
-    params : TStrings;
-    param : AnsiString;
-    command : string;
-begin
 
+begin
     // *************************************************************************
     // * Find the python program path
     // *************************************************************************
-    pythonProgramName := 'python.exe';
-    launcherProgramName := 'py.exe';
-
-    params := TStringList.Create;
-    params.Add('-2');
-    params.Add('--version');
+    pythonProgramName := 'pythonw.exe';
+    launcherProgramName := 'pyw.exe';
 
     programName := pythonProgramName;
     programPath := FindDefaultExecutablePath(programName);
@@ -103,50 +90,6 @@ begin
         if length(programPath) = 0 then
             raise MyRunnerException.Create('Could not find ' + pythonProgramName + ' or ' + launcherProgramName + ' on the PATH');
     end;
-
-    // *************************************************************************
-    // * Find the version of python
-    // *************************************************************************
-//    proc := TProcess.Create(nil);
-//    proc.Executable:= programPath;
-//
-//    for i := 0 to params.count - 1 do
-//    begin
-//        param := params[i];
-//        proc.Parameters.Add(param);
-//    end;
-//
-//    proc.Options := proc.Options + [poUsePipes, poNewConsole];
-//    proc.Execute;
-//
-//    Result := '';
-//    OutputStream := TMemoryStream.Create;
-//    repeat
-//      BytesRead := proc.Output.Read(Buffer, BUF_SIZE);
-//      OutputStream.Write(Buffer, BytesRead)
-//    until BytesRead = 0;  // Stop if no more data is available
-//
-//   proc.Free;
-//
-//    SetString(Result, PAnsiChar(OutputStream.Memory), OutputStream.Size);
-//    Result := Trim(Result);
-//
-//    if not AnsiStartsStr('Python ', Result) then
-//    begin
-//        command := ProgramName;
-//        for i := 0 to params.Count - 1 do
-//            command := command + ' ' + params[i];
-//
-//        raise MyRunnerException.Create('Unexpected output from "' + command + ' : result: ' + Result);
-//    end;
-//
-//    pythonVersion := 0;
-//    if AnsiContainsStr(Result, '2.') then
-//         pythonVersion := 2
-//    else if AnsiContainsStr(Result, '3.') then
-//         pythonVersion := 3
-//    else
-//        raise MyRunnerException.Create('Unexpected python version from "' + ProgramName + ' --version" : ' + Result);
 
     // *************************************************************************
     // * Launch the python server

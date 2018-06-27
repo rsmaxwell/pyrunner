@@ -69,7 +69,7 @@ begin
     try
         writeln('Startup' );
         client := MyRunner.Create();
-        client.AttachLogger( self );
+        // client.AttachLogger( self );
 
         try
             writeln('Create array' );
