@@ -117,6 +117,7 @@ begin
             line := lines[i];
             log(line);
         end;
+        lines.Free;
     end;
 end;
 
@@ -187,6 +188,7 @@ begin
     log('MyRunner.Close: token: ' + token);
 
     asyncClient.WaitForResponse( token );
+    asyncClient.HandleResponseClose();
     log('MyRunner.Close: exit');
 end;
 

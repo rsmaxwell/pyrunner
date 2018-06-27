@@ -51,6 +51,7 @@ type
         function Close() : string;
 
         procedure HandleResponseGetResult(jObject : TJSONObject; var count : integer; var total : real);
+        procedure HandleResponseClose();
     end;
 
 
@@ -484,16 +485,6 @@ begin
     WriteLn(command);
     response[ token ] := MyResponseItem.Create();
 
-    Sleep(100);
-
-    if not outputReader.Finished then
-        outputReader.Terminate();
-
-    if not errorReader.Finished then
-        errorReader.Terminate();
-
-    proc.Terminate(0);
-
     Close := token;
 end;
 
@@ -568,6 +559,23 @@ begin
     log('MyRunnerAsync.GetResultResponse: exit');
 end;
 
+
+
+
+procedure MyRunnerAsync.HandleResponseClose(); begin
+    if not outputReader.Finished then
+        outputReader.Terminate();
+
+    if not errorReader.Finished then
+        errorReader.Terminate();
+
+    proc.Terminate(0);
+
+    observers.Free;
+    response.Free;
+    linebuffer.Free;
+    semaphore.Free;
+end;
 
 
 end.
