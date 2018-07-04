@@ -24,7 +24,7 @@ type
         observers: TInterfaceList;
         response : ResponseTreeMap;
 
-        linebuffer: TStrings;
+        logbuffer: TStrings;
         semaphore: TSemaphore;
 
         procedure WriteLn(line: AnsiString);
@@ -62,6 +62,8 @@ implementation
 const
     CarriageReturn: Byte = 13;
     LineFeed: Byte = 10;
+    pythonProgramName: String = 'pythonw.exe';
+    launcherProgramName: String = 'pyw.exe';
 
 
 // *****************************************************************************
@@ -69,35 +71,27 @@ const
 // *****************************************************************************
 
 constructor MyRunnerAsync.Create();
-var                       
-    pythonProgramName : string;
-    launcherProgramName : string;
-    programName : string;
+var
     programPath : string;
 
 begin
     // *************************************************************************
     // * Find the python program path
     // *************************************************************************
-    pythonProgramName := 'pythonw.exe';
-    launcherProgramName := 'pyw.exe';
+    programPath := FindDefaultExecutablePath(pythonProgramName);
 
-    programName := pythonProgramName;
-    programPath := FindDefaultExecutablePath(programName);
     if length(programPath) = 0 then
-    begin
-        programName := launcherProgramName;
-        programPath := FindDefaultExecutablePath(programName);
-        if length(programPath) = 0 then
-            raise MyRunnerException.Create('Could not find ' + pythonProgramName + ' or ' + launcherProgramName + ' on the PATH');
-    end;
+        programPath := FindDefaultExecutablePath(launcherProgramName);
+
+    if length(programPath) = 0 then
+        raise MyRunnerException.Create('Could not find ' + pythonProgramName + ' or ' + launcherProgramName + ' on the PATH');
 
     // *************************************************************************
     // * Launch the python server
     // *************************************************************************
     observers := TInterfaceList.Create;
     response := ResponseTreeMap.create;
-    linebuffer := TStringList.Create;
+    logbuffer := TStringList.Create;
     semaphore := TSemaphore.Create(1);
 
     proc := TProcess.Create(nil);
@@ -309,7 +303,7 @@ end;
 procedure MyRunnerAsync.log( line: AnsiString );
 begin
     semaphore.Wait();
-    linebuffer.Add(line);
+    logbuffer.Add(line);
     semaphore.Post();
 
     notifyObservers();
@@ -320,8 +314,8 @@ var
     temp: TStrings;
 begin
     semaphore.Wait();
-    temp := linebuffer;
-    linebuffer := TStringList.Create;
+    temp := logbuffer;
+    logbuffer := TStringList.Create;
     semaphore.Post();
 
     buffer := temp;
@@ -573,7 +567,7 @@ procedure MyRunnerAsync.HandleResponseClose(); begin
 
     observers.Free;
     response.Free;
-    linebuffer.Free;
+    logbuffer.Free;
     semaphore.Free;
 end;
 
