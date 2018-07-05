@@ -44,7 +44,7 @@ begin
     client.RunPythonFunction('foobar');
 
     client.GetResult(count, total);
-    writeln( 'Results:' );
+    writeln('Result:' );
     writeln('     count = ' + IntToStr(count) );
     writeln('     total = ' + FloatToStr(total) );
 
@@ -161,7 +161,7 @@ begin
 
             writeln('before MyAsyncRunner.WaitForResponse: token: ' + token);
             client.asyncClient.WaitForResponse(token);
-            writeln('after MyAsyncRunner.WaitForResponse: exit: ');
+            writeln('after MyAsyncRunner.WaitForResponse: exit');
 
 
             writeln('Get result' );

@@ -22,7 +22,7 @@ type
         outputReader : MyReader;
         errorReader : MyReader;
         observers: TInterfaceList;
-        response : ResponseTreeMap;
+        responseMap : ResponseTreeMap;
 
         logbuffer: TStrings;
         semaphore: TSemaphore;
@@ -75,6 +75,11 @@ var
     programPath : string;
 
 begin
+    observers := TInterfaceList.Create;
+    responseMap := ResponseTreeMap.create;
+    logbuffer := TStringList.Create;
+    semaphore := TSemaphore.Create(1);
+
     // *************************************************************************
     // * Find the python program path
     // *************************************************************************
@@ -89,11 +94,6 @@ begin
     // *************************************************************************
     // * Launch the python server
     // *************************************************************************
-    observers := TInterfaceList.Create;
-    response := ResponseTreeMap.create;
-    logbuffer := TStringList.Create;
-    semaphore := TSemaphore.Create(1);
-
     proc := TProcess.Create(nil);
     proc.Executable:= programPath;
     proc.Parameters.Add('server.py');
@@ -158,13 +158,13 @@ var
     message : AnsiString;
 
 begin
-    responseItem := response[ token ];
+    responseItem := responseMap[ token ];
 
     log( 'MyRunnerAsync.WaitForResponse: waiting for: ' + token );
     responseItem.semaphore.Wait();
 
     log( 'MyRunnerAsync.WaitForResponse: continuing: ' + token );
-    response.delete( token );
+    responseMap.delete( token );
     line := responseItem.line;
     responseItem.Destroy();
 
@@ -261,7 +261,7 @@ begin
                 end;
             end;
 
-            responseItem := response[ token ];
+            responseItem := responseMap[ token ];
             responseItem.line := line;
             responseItem.semaphore.Post();
         end
@@ -361,7 +361,7 @@ begin
     jObject.Add('token', token);
     command := jObject.AsJSON;
     WriteLn(command);
-    response[ token ] := MyResponseItem.Create();
+    responseMap[ token ] := MyResponseItem.Create();
 
     CreateArray := token
 end;
@@ -402,7 +402,7 @@ begin
     jObject.Add('token', token);
     command := jObject.AsJSON;
     WriteLn(command);
-    response[ token ] := MyResponseItem.Create();
+    responseMap[ token ] := MyResponseItem.Create();
 
     ExtendArray := token;
 end;
@@ -433,7 +433,7 @@ begin
     jObject.Add('token', token);
     command := jObject.AsJSON;
     WriteLn(command);
-    response[ token ] := MyResponseItem.Create();
+    responseMap[ token ] := MyResponseItem.Create();
 
     RunPythonFunction := token
 end;
@@ -458,7 +458,7 @@ begin
     jObject.Add('token', token);
     command := jObject.AsJSON;
     WriteLn(command);
-    response[ token ] := MyResponseItem.Create();
+    responseMap[ token ] := MyResponseItem.Create();
 
     GetResult := token;
 end;
@@ -477,7 +477,7 @@ begin
     jObject.Add('token', token);
     command := jObject.AsJSON;
     WriteLn(command);
-    response[ token ] := MyResponseItem.Create();
+    responseMap[ token ] := MyResponseItem.Create();
 
     Close := token;
 end;
@@ -497,60 +497,54 @@ var
     jTotal : TJSONFloatNumber;
 
 begin
-    log('MyRunnerAsync.GetResultResponse: entry');
+    log('MyRunnerAsync.HandleResponseGetResult: entry');
 
     jData := jObject.Find('result');
     if jData = Nil then
-        raise MyRunnerException.Create('The "result" field is missing')
+        raise MyRunnerException.Create('The "result" field is missing');
+
+    jtype := jData.JSONType();
+    if  jtype = TJSONType.jtObject then
+        jResult := jData as TJSONObject
     else
     begin
-        jtype := jData.JSONType();
-        if  jtype = TJSONType.jtObject then
-            jResult := jData as TJSONObject
-        else
-        begin
-            jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-            raise MyRunnerException.Create('Error: unexpected result type. jType = ' + jTypeString);
-        end;
-
-        jData := jResult.Find('count');
-        if jData = Nil then
-            raise MyRunnerException.Create('Error: The "result.count" field is missing')
-        else
-        begin
-            jtype := jData.JSONType();
-            if  jtype = TJSONType.jtNumber then
-            begin
-                jCount := jData as TJSONIntegerNumber;
-                count := jCount.AsInteger;
-            end
-            else
-            begin
-                jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-                raise MyRunnerException.Create('Error: Unexpected result.count type: jType = ' + jTypeString);
-            end;
-        end;
-
-        jData := jResult.Find('total');
-        if jData = Nil then
-            raise MyRunnerException.Create('Error: The "result.total" field is missing')
-        else
-        begin
-            jtype := jData.JSONType();
-            if  jtype = TJSONType.jtNumber then
-            begin
-                jTotal := jData as TJSONFloatNumber;
-                total := jTotal.AsFloat;
-            end
-            else
-            begin
-                jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
-                raise MyRunnerException.Create('Error: Unexpected result.total type: jType = ' + jTypeString);
-            end;
-        end;
+        jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+        raise MyRunnerException.Create('Error: unexpected result type. jType = ' + jTypeString);
     end;
 
-    log('MyRunnerAsync.GetResultResponse: exit');
+    jData := jResult.Find('count');
+    if jData = Nil then
+        raise MyRunnerException.Create('Error: The "result.count" field is missing');
+
+    jtype := jData.JSONType();
+    if  jtype = TJSONType.jtNumber then
+    begin
+        jCount := jData as TJSONIntegerNumber;
+        count := jCount.AsInteger;
+    end
+    else
+    begin
+        jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+        raise MyRunnerException.Create('Error: Unexpected result.count type: jType = ' + jTypeString);
+    end;
+
+    jData := jResult.Find('total');
+    if jData = Nil then
+        raise MyRunnerException.Create('Error: The "result.total" field is missing');
+
+    jtype := jData.JSONType();
+    if  jtype = TJSONType.jtNumber then
+    begin
+        jTotal := jData as TJSONFloatNumber;
+        total := jTotal.AsFloat;
+    end
+    else
+    begin
+        jTypeString := GetEnumName(TypeInfo(TJSONtype), Ord(jtype));
+        raise MyRunnerException.Create('Error: Unexpected result.total type: jType = ' + jTypeString);
+    end;
+
+    log('MyRunnerAsync.HandleResponseGetResult: exit');
 end;
 
 
@@ -566,7 +560,7 @@ procedure MyRunnerAsync.HandleResponseClose(); begin
     proc.Terminate(0);
 
     observers.Free;
-    response.Free;
+    responseMap.Free;
     logbuffer.Free;
     semaphore.Free;
 end;
