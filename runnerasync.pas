@@ -91,6 +91,8 @@ begin
     if length(programPath) = 0 then
         raise MyRunnerException.Create('Could not find ' + pythonProgramName + ' or ' + launcherProgramName + ' on the PATH');
 
+    log('programPath: ' + programPath);
+
     // *************************************************************************
     // * Launch the python server
     // *************************************************************************
