@@ -174,7 +174,7 @@ Each response sent by the python process back to the pascal [Runner](runner.pas)
 * error
   * The response also contains a __ErrorMessage__ field describing the problem
 
-It is important that python flushes after printing responses, as python cashes responses rather than sending them immediatly. 
+It is important that the python server script flushes after printing responses, as python cashes responses rather than sending them immediatly. 
 
 ## Semaphores
 
